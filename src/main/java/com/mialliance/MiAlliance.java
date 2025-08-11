@@ -35,12 +35,15 @@ public class MiAlliance {
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
     // Can't be final due to MiAlliance being an instance
+    // Pain
     public static IEventBus eventBus;
 
     public MiAlliance(FMLJavaModLoadingContext ctx) {
         eventBus = ctx.getModEventBus();
 
         // Register ourselves for server and other game events we are interested in
+        // Ew, Forge
+        // - Warnickwar
         MinecraftForge.EVENT_BUS.register(this);
     }
 
