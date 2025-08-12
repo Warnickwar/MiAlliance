@@ -1,5 +1,6 @@
 package com.mialliance.mind.tasks;
 
+import com.mialliance.mind.agents.MindOwner;
 import com.mialliance.mind.memories.MemoryValue;
 import com.mialliance.mind.memories.TemplateValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -9,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class GenericPrimitiveTask<O extends TaskOwner> extends PrimitiveTask<O> {
+public final class GenericPrimitiveTask<O extends MindOwner> extends PrimitiveTask<O> {
 
     private final PrimitiveStart<O> onStart;
     private final PrimitiveTick<O> onTick;
@@ -38,21 +39,21 @@ public final class GenericPrimitiveTask<O extends TaskOwner> extends PrimitiveTa
         this.onEnd.run(owner);
     }
 
-    public interface PrimitiveStart<O extends TaskOwner> {
+    public interface PrimitiveStart<O extends MindOwner> {
         boolean run(O owner);
-        PrimitiveStart<?> EMPTY = (PrimitiveStart<TaskOwner>) owner -> false;
+        PrimitiveStart<?> EMPTY = (PrimitiveStart<MindOwner>) owner -> false;
     }
 
     @FunctionalInterface
-    public interface PrimitiveTick<O extends TaskOwner> {
+    public interface PrimitiveTick<O extends MindOwner> {
 
         TaskState run(O owner);
-        PrimitiveTick<?> EMPTY = (PrimitiveTick<TaskOwner>) owner -> TaskState.FAILURE;
+        PrimitiveTick<?> EMPTY = (PrimitiveTick<MindOwner>) owner -> TaskState.FAILURE;
     }
     @FunctionalInterface
-    public interface PrimitiveEnd<O extends TaskOwner> {
+    public interface PrimitiveEnd<O extends MindOwner> {
         void run(O owner);
-        PrimitiveEnd<?> EMPTY = (PrimitiveEnd<TaskOwner>) owner -> {};
+        PrimitiveEnd<?> EMPTY = (PrimitiveEnd<MindOwner>) owner -> {};
     }
 
 }

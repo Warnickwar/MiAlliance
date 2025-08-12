@@ -2,10 +2,12 @@ package com.mialliance.mind.memories;
 
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
+import javax.annotation.Nullable;
+
 public class MemoryManager extends ImmutableMemoryManager {
 
-    private MemoryManager(MemoryManager manager) {
-        super(manager);
+    public MemoryManager() {
+        super();
     }
 
     private MemoryManager(ImmutableMemoryManager manager) {
@@ -14,7 +16,13 @@ public class MemoryManager extends ImmutableMemoryManager {
 
     public void tick() {
         this.memories.values().forEach(mem -> {
-            if (mem.isExpirable()) mem.tick();
+            if (mem.isExpirable()) {
+                if (mem.hasExpired()) {
+                    removeMemory(mem.type);
+                } else {
+                    mem.tick();
+                }
+            }
         });
     }
 
@@ -27,8 +35,12 @@ public class MemoryManager extends ImmutableMemoryManager {
         });
     }
 
-    public <T> void removeMemory(MemoryModuleType<T> type) {
-        this.memories.remove(type);
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <T> T removeMemory(MemoryModuleType<T> type) {
+        MemoryValue<T> val = (MemoryValue<T>) this.memories.remove(type);
+        if (val == null) return null;
+        return val.getValue();
     }
 
     public <T> void setMemory(MemoryModuleType<T> type, T value) {

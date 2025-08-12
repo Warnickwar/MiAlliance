@@ -1,5 +1,6 @@
 package com.mialliance.mind.tasks;
 
+import com.mialliance.mind.agents.MindOwner;
 import com.mialliance.mind.memories.MemoryManager;
 import com.mialliance.mind.memories.MemoryValue;
 import com.mialliance.mind.memories.TemplateValue;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public abstract class PrimitiveTask<O extends TaskOwner> extends BaseTask<O> {
+public abstract class PrimitiveTask<O extends MindOwner> extends BaseTask<O> {
 
     private final Map<MemoryModuleType<?>, TemplateValue<?>> effects;
 

@@ -1,5 +1,6 @@
 package com.mialliance.mind.builders;
 
+import com.mialliance.mind.agents.MindOwner;
 import com.mialliance.mind.memories.MemoryValue;
 import com.mialliance.mind.memories.TemplateValue;
 import com.mialliance.mind.tasks.*;
@@ -8,7 +9,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import java.util.*;
 import java.util.function.Predicate;
 
-public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTask<O>> {
+public abstract class BehaviorTreeBuilder<O extends MindOwner, T extends BaseTask<O>> {
 
     protected final String identifier;
     protected final HashMap<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions;
@@ -18,17 +19,17 @@ public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTas
         this.preconditions = new HashMap<>();
     }
 
-    public static <O extends TaskOwner> RootBuilder<O> start(String identifier) {
+    public static <O extends MindOwner> RootBuilder<O> start(String identifier) {
         return new RootBuilder<>(identifier);
     }
 
-    protected static <O extends TaskOwner> void addPrecondition(BehaviorTreeBuilder<O, ?> builder, MemoryModuleType<?> type, Predicate<MemoryValue<?>> valueCheck) {
+    protected static <O extends MindOwner> void addPrecondition(BehaviorTreeBuilder<O, ?> builder, MemoryModuleType<?> type, Predicate<MemoryValue<?>> valueCheck) {
         builder.preconditions.put(type, valueCheck);
     }
 
     abstract T build();
 
-    public static class RootBuilder<O extends TaskOwner> extends CompoundBuilder<O> {
+    public static class RootBuilder<O extends MindOwner> extends CompoundBuilder<O> {
 
         RootBuilder(String identifier) {
             super(identifier);
@@ -60,7 +61,7 @@ public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTas
 
     }
 
-    public static class CompoundBuilder<O extends TaskOwner> extends BehaviorTreeBuilder<O, CompoundTask<O>> {
+    public static class CompoundBuilder<O extends MindOwner> extends BehaviorTreeBuilder<O, CompoundTask<O>> {
         protected CompoundState<O> state;
 
         // Used solely in order to retain the children ordering-important in AI evaluation
@@ -99,7 +100,7 @@ public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTas
     }
 
     // I highly recommend you just make your own Primitive classes.
-    public static class PrimitiveBuilder<O extends TaskOwner> extends BehaviorTreeBuilder<O, GenericPrimitiveTask<O>> {
+    public static class PrimitiveBuilder<O extends MindOwner> extends BehaviorTreeBuilder<O, GenericPrimitiveTask<O>> {
 
         private GenericPrimitiveTask.PrimitiveStart<O> onStart;
         private GenericPrimitiveTask.PrimitiveTick<O> onTick;
@@ -148,7 +149,7 @@ public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTas
 
     }
 
-    public static class CustomBuilder<O extends TaskOwner, T extends BaseTask<O>> extends BehaviorTreeBuilder<O, T> {
+    public static class CustomBuilder<O extends MindOwner, T extends BaseTask<O>> extends BehaviorTreeBuilder<O, T> {
 
         private final TaskFactory<O,T> factory;
 
@@ -165,7 +166,7 @@ public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTas
             return factory.get(this.preconditions);
         }
 
-        public interface TaskFactory<O extends TaskOwner, T extends BaseTask<O>> {
+        public interface TaskFactory<O extends MindOwner, T extends BaseTask<O>> {
             T get(Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions);
         }
     }

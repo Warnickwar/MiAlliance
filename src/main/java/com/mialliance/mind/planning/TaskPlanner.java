@@ -1,10 +1,10 @@
 package com.mialliance.mind.planning;
 
+import com.mialliance.mind.agents.MindOwner;
 import com.mialliance.mind.memories.MemoryManager;
 import com.mialliance.mind.tasks.BaseTask;
 import com.mialliance.mind.tasks.CompoundTask;
 import com.mialliance.mind.tasks.PrimitiveTask;
-import com.mialliance.mind.tasks.TaskOwner;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
@@ -15,15 +15,16 @@ import java.util.LinkedList;
  */
 public final class TaskPlanner {
 
-    public static <O extends TaskOwner> TaskPlan<O> makePlan(@NotNull O owner) {
+    @SuppressWarnings("unchecked")
+    public static <O extends MindOwner> TaskPlan<O> makePlan(@NotNull O owner) {
         LinkedList<PrimitiveTask<O>> currentTasks = new LinkedList<>();
-        step(owner.getDomain(), MemoryManager.of(owner.getMemories()), currentTasks);
+        step((BaseTask<O>) owner.getAgent().getDomain(), MemoryManager.of(owner.getAgent().getMemories()), currentTasks);
 
         return new TaskPlan<>(owner, currentTasks);
     }
 
     // Public solely for capability to add more CompoundStates.
-    public static <O extends TaskOwner> boolean step(BaseTask<O> task, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks) {
+    public static <O extends MindOwner> boolean step(BaseTask<O> task, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks) {
         // TODO: When reaching higher Java version, switch to
         //  implicit casting Switch statements.
         if (task instanceof CompoundTask<O> cTask) {
@@ -36,7 +37,7 @@ public final class TaskPlanner {
     }
 
     // No need to have this exposed really
-    private static <O extends TaskOwner> boolean primitiveStep(@NotNull PrimitiveTask<O> task, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks) {
+    private static <O extends MindOwner> boolean primitiveStep(@NotNull PrimitiveTask<O> task, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks) {
         if (!task.isUsable(state)) return false;
 
         task.applyEffectsToState(state);

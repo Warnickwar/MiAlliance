@@ -1,13 +1,13 @@
 package com.mialliance.mind.planning;
 
+import com.mialliance.mind.agents.MindOwner;
 import com.mialliance.mind.tasks.PrimitiveTask;
-import com.mialliance.mind.tasks.TaskOwner;
 import com.mialliance.mind.tasks.TaskState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 
-public class TaskPlan<O extends TaskOwner> {
+public final class TaskPlan<O extends MindOwner> {
 
     private final O owner;
     // I would use a LinkedHashSet, but somehow I can't pull anything after using it?
@@ -36,7 +36,7 @@ public class TaskPlan<O extends TaskOwner> {
         }
     }
 
-    boolean isComplete() {
+    public boolean isComplete() {
         return tasks.isEmpty() && currentTask == null;
     }
 
@@ -52,11 +52,16 @@ public class TaskPlan<O extends TaskOwner> {
 
         currentTask = tasks.remove();
         if (currentTask != null) {
-
+            if (!currentTask.start(owner)) {
+                end();
+                return false;
+            }
+            return true;
         }
+        return false;
     }
 
-    private void end() {
+    public void end() {
         if (currentTask != null) currentTask.end(owner);
 
         tasks.clear();

@@ -1,15 +1,18 @@
 package com.mialliance.mind.memories;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.*;
 import net.minecraft.core.Registry;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class ImmutableMemoryManager {
@@ -29,6 +32,11 @@ public class ImmutableMemoryManager {
         original.memories.forEach((type, val) -> {
             this.memories.put(type, val.copy());
         });
+    }
+
+    public ImmutableMemoryManager(LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> values, Supplier<Codec<ImmutableMemoryManager>> codecSupp) {
+        this.memories = values;
+        this.CODEC = codecSupp.get();
     }
 
     @SuppressWarnings("unchecked")
@@ -82,7 +90,15 @@ public class ImmutableMemoryManager {
 
     // SERIALIZATION UTILITY
 
+    public Codec<ImmutableMemoryManager> getCodec() {
+        return this.CODEC;
+    }
+
     private static Codec<ImmutableMemoryManager> codec(ImmutableMemoryManager manager) {
+        return codec(manager.memories);
+    }
+
+    private static Codec<ImmutableMemoryManager> codec(LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> memories) {
         final MutableObject<Codec<ImmutableMemoryManager>> mutable = new MutableObject<>();
         mutable.setValue((new MapCodec<ImmutableMemoryManager>() {
 
@@ -118,7 +134,7 @@ public class ImmutableMemoryManager {
 
             @Override
             public <T> Stream<T> keys(DynamicOps<T> ops) {
-                return manager.memories.keySet().stream().flatMap(type -> {
+                return memories.keySet().stream().flatMap(type -> {
                     return type.getCodec().map(codec -> {
                         // TODO: Fuck forge, swap to updated version in BuiltInRegistries in 1.20.1
                         return Registry.MEMORY_MODULE_TYPE.getKey(type);
@@ -135,14 +151,35 @@ public class ImmutableMemoryManager {
                     return new MemoryValue<U>(type, expirVal);
                 });
             }
-        }).fieldOf("memories").codec());
+        }).codec());
         return mutable.getValue();
     }
 
     // A simple function to create an immutable view
-    public static ImmutableMemoryManager of(ImmutableMemoryManager manager) {
+    public static ImmutableMemoryManager of(@NotNull ImmutableMemoryManager manager) {
         return new ImmutableMemoryManager(manager);
     }
 
+    public static ImmutableMemoryManager.Provider provider(@NotNull LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> values) {
+        return new Provider(values);
+    }
+
+    public static class Provider {
+        LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> values;
+        Codec<ImmutableMemoryManager> codec;
+
+        Provider(@NotNull LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> values) {
+            this.values = values;
+            this.codec = codec(values);
+        }
+
+        public ImmutableMemoryManager makeImmutable(Dynamic<?> dynamic) {
+            return this.codec.parse(dynamic).resultOrPartial(LogUtils.getLogger()::error).orElseGet(() -> new ImmutableMemoryManager(this.values, () -> this.codec));
+        }
+
+        public MemoryManager makeMutable(Dynamic<?> dynamic) {
+            return MemoryManager.of(makeImmutable(dynamic));
+        }
+    }
 
 }

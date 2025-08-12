@@ -1,8 +1,10 @@
 package com.mialliance.mind.tasks;
 
+import com.mialliance.mind.agents.MindOwner;
+
 /**
  * TaskStates represent states of {@link PrimitiveTask PrimitiveTasks} when ticking their activities. Each state returned
- * in the {@link PrimitiveTask#tick(TaskOwner)} function indicates to the Planner that a different action should occur
+ * in the {@link PrimitiveTask#tick(MindOwner)} function indicates to the Planner that a different action should occur
  * in regard to the current Task.
  */
 public enum TaskState {

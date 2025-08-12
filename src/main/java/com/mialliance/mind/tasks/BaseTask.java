@@ -1,5 +1,6 @@
 package com.mialliance.mind.tasks;
 
+import com.mialliance.mind.agents.MindOwner;
 import com.mialliance.mind.memories.ImmutableMemoryManager;
 import com.mialliance.mind.memories.MemoryValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -10,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
-public abstract class BaseTask<O extends TaskOwner> {
+public abstract class BaseTask<O extends MindOwner> {
 
     private final String identifier;
 
