@@ -1,37 +1,46 @@
 package com.mialliance.mind.tasks;
 
-import com.mialliance.mind.memories.ImmutableMemoryManager;
+import com.mialliance.mind.memories.MemoryManager;
+import com.mialliance.mind.planning.TaskPlanner;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.LinkedList;
 
-public final class CompoundState {
+public record CompoundState<O extends TaskOwner>(StepAttempt<O> attemptFunction) {
 
-    // Technically, it's not necessary to *not* have this as an Enumeration,
-    //  But I might as well offer the capability to.
-    public static final CompoundState SEQUENTIAL = new CompoundState((tasks, owner) -> tasks.stream().allMatch(task -> task.isUsable(owner)));
-    public static final CompoundState FALLBACK = new CompoundState((tasks, owner) -> tasks.stream().anyMatch(task -> task.isUsable(owner)));
+    public static final CompoundState<?> SEQUENTIAL = new CompoundState<>((cTask, state, currentTasks) -> {
+        MemoryManager tempState = MemoryManager.of(state);
+        LinkedList<PrimitiveTask<TaskOwner>> tempSteps = new LinkedList<>(currentTasks);
 
+        for (BaseTask<TaskOwner> task : cTask.getChildren()) {
+            if (!task.isUsable(tempState)) return false;
+            if (!TaskPlanner.step(task, tempState, tempSteps)) return false;
+        }
 
-    // <------------------->
+        state.acceptAll(tempState);
 
-    private final TaskCheck predicate;
+        currentTasks.clear();
+        currentTasks.addAll(tempSteps);
 
-    public CompoundState(TaskCheck func) {
-        this.predicate = func;
-    }
+        return true;
+    });
+    public static final CompoundState<?> FALLBACK = new CompoundState<>((cTask, state, currentTasks) -> {
+        for (BaseTask<TaskOwner> task : cTask.getChildren()) {
+            if (!task.isUsable(state)) return false;
+            return TaskPlanner.step(task, state, currentTasks);
+        }
+        return false;
+    });
 
-    public boolean isValidToPick(BaseTask[] tasks, ImmutableMemoryManager manager) {
-        return isValidToPick(List.of(tasks), manager);
-    }
-
-    public boolean isValidToPick(Collection<BaseTask> tasks, ImmutableMemoryManager manager) {
-        return predicate.canRun(tasks, manager);
+    public boolean attemptStep(@NotNull CompoundTask<O> cTask, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks) {
+        return this.attemptFunction.attemptStep(cTask, state, currentTasks);
     }
 
     @FunctionalInterface
-    public interface TaskCheck {
-        boolean canRun(Collection<BaseTask> tasks, ImmutableMemoryManager owner);
+    public interface StepAttempt<O extends TaskOwner> {
+
+        boolean attemptStep(@NotNull CompoundTask<O> cTask, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks);
+
     }
 
 }

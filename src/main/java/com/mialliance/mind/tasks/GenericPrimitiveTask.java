@@ -11,12 +11,12 @@ import java.util.function.Predicate;
 
 public final class GenericPrimitiveTask<O extends TaskOwner> extends PrimitiveTask<O> {
 
-    private final PrimitiveRun<O> onStart;
+    private final PrimitiveStart<O> onStart;
     private final PrimitiveTick<O> onTick;
-    private final PrimitiveRun<O> onEnd;
+    private final PrimitiveEnd<O> onEnd;
 
     public GenericPrimitiveTask(@NotNull String identifier, @NotNull HashMap<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions, @NotNull Map<MemoryModuleType<?>, TemplateValue<?>> effects,
-                         PrimitiveRun<O> onStart, PrimitiveTick<O> onTick, PrimitiveRun<O> onEnd) {
+                                PrimitiveStart<O> onStart, PrimitiveTick<O> onTick, PrimitiveEnd<O> onEnd) {
         super(identifier, preconditions, effects);
         this.onStart = onStart;
         this.onTick = onTick;
@@ -24,12 +24,12 @@ public final class GenericPrimitiveTask<O extends TaskOwner> extends PrimitiveTa
     }
 
     @Override
-    public void start(O owner) {
-        this.onStart.run(owner);
+    public boolean start(O owner) {
+        return this.onStart.run(owner);
     }
 
     @Override
-    public TaskStates tick(O owner) {
+    public TaskState tick(O owner) {
         return this.onTick.run(owner);
     }
 
@@ -38,16 +38,21 @@ public final class GenericPrimitiveTask<O extends TaskOwner> extends PrimitiveTa
         this.onEnd.run(owner);
     }
 
-    @FunctionalInterface
-    public interface PrimitiveRun<O extends TaskOwner> {
-        void run(O owner);
-        PrimitiveRun<?> EMPTY = (PrimitiveRun<TaskOwner>) owner -> {};
+    public interface PrimitiveStart<O extends TaskOwner> {
+        boolean run(O owner);
+        PrimitiveStart<?> EMPTY = (PrimitiveStart<TaskOwner>) owner -> false;
     }
 
     @FunctionalInterface
     public interface PrimitiveTick<O extends TaskOwner> {
-        TaskStates run(O owner);
-        PrimitiveTick<?> EMPTY = (PrimitiveTick<TaskOwner>) owner -> TaskStates.FAILURE;
+
+        TaskState run(O owner);
+        PrimitiveTick<?> EMPTY = (PrimitiveTick<TaskOwner>) owner -> TaskState.FAILURE;
+    }
+    @FunctionalInterface
+    public interface PrimitiveEnd<O extends TaskOwner> {
+        void run(O owner);
+        PrimitiveEnd<?> EMPTY = (PrimitiveEnd<TaskOwner>) owner -> {};
     }
 
 }

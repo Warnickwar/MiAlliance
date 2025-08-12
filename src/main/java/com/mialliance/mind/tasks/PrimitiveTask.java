@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public abstract class PrimitiveTask<O extends TaskOwner> extends BaseTask {
+public abstract class PrimitiveTask<O extends TaskOwner> extends BaseTask<O> {
 
     private final Map<MemoryModuleType<?>, TemplateValue<?>> effects;
 
@@ -19,9 +19,9 @@ public abstract class PrimitiveTask<O extends TaskOwner> extends BaseTask {
         this.effects = effects;
     }
 
-    public abstract void start(O owner);
+    public abstract boolean start(O owner);
 
-    public abstract TaskStates tick(O owner);
+    public abstract TaskState tick(O owner);
 
     public abstract void end(O owner);
 

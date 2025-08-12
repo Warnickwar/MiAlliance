@@ -7,9 +7,8 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
-public abstract class BehaviorTreeBuilder<T extends BaseTask> {
+public abstract class BehaviorTreeBuilder<O extends TaskOwner, T extends BaseTask<O>> {
 
     protected final String identifier;
     protected final HashMap<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions;
@@ -19,99 +18,101 @@ public abstract class BehaviorTreeBuilder<T extends BaseTask> {
         this.preconditions = new HashMap<>();
     }
 
-    public static RootBuilder start(String identifier) {
-        return new RootBuilder(identifier);
+    public static <O extends TaskOwner> RootBuilder<O> start(String identifier) {
+        return new RootBuilder<>(identifier);
     }
 
-    protected static void addPrecondition(BehaviorTreeBuilder<?> builder, MemoryModuleType<?> type, Predicate<MemoryValue<?>> valueCheck) {
+    protected static <O extends TaskOwner> void addPrecondition(BehaviorTreeBuilder<O, ?> builder, MemoryModuleType<?> type, Predicate<MemoryValue<?>> valueCheck) {
         builder.preconditions.put(type, valueCheck);
     }
 
     abstract T build();
 
-    public static class RootBuilder extends CompoundBuilder {
+    public static class RootBuilder<O extends TaskOwner> extends CompoundBuilder<O> {
 
         RootBuilder(String identifier) {
             super(identifier);
         }
 
         @Override
-        public RootBuilder setState(CompoundState state) {
-            return (RootBuilder) super.setState(state);
+        public RootBuilder<O> setState(CompoundState state) {
+            return (RootBuilder<O>) super.setState(state);
         }
 
         @Override
-        public RootBuilder addChild(BehaviorTreeBuilder<?> builder) {
-            return (RootBuilder) super.addChild(builder);
+        public RootBuilder<O> addChild(BehaviorTreeBuilder<O, ?> builder) {
+            return (RootBuilder<O>) super.addChild(builder);
         }
 
         @Override
-        public <T extends BaseTask> RootBuilder addChild(String identifier, Supplier<T> supplier, Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions) {
-            return (RootBuilder) super.addChild(identifier, supplier, preconditions);
+        public <T extends BaseTask<O>> RootBuilder<O> addChild(String identifier, CustomBuilder.TaskFactory<O,T> supplier, Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions) {
+            return (RootBuilder<O>) super.addChild(identifier, supplier, preconditions);
         }
 
         @Override
-        public <T extends BaseTask> RootBuilder addChild(String identifier, Supplier<T> supplier) {
-            return (RootBuilder) super.addChild(identifier, supplier);
+        public <T extends BaseTask<O>> RootBuilder<O> addChild(String identifier, CustomBuilder.TaskFactory<O,T> supplier) {
+            return (RootBuilder<O>) super.addChild(identifier, supplier);
         }
 
-        public CompoundTask construct() {
+        public CompoundTask<O> construct() {
             return this.build();
         }
 
     }
 
-    public static class CompoundBuilder extends BehaviorTreeBuilder<CompoundTask> {
-        protected CompoundState state;
+    public static class CompoundBuilder<O extends TaskOwner> extends BehaviorTreeBuilder<O, CompoundTask<O>> {
+        protected CompoundState<O> state;
 
-        protected ArrayList<BehaviorTreeBuilder<?>> children;
+        // Used solely in order to retain the children ordering-important in AI evaluation
+        protected LinkedList<BehaviorTreeBuilder<O, ?>> children;
 
+        @SuppressWarnings("unchecked")
         public CompoundBuilder(String identifier) {
             super(identifier);
-            this.state = CompoundState.FALLBACK;
-            this.children = new ArrayList<>();
+            this.state = (CompoundState<O>) CompoundState.FALLBACK;
+            this.children = new LinkedList<>();
         }
 
-        public CompoundBuilder setState(CompoundState state) {
+        public CompoundBuilder<O> setState(CompoundState<O> state) {
             this.state = state;
             return this;
         }
 
-        public <T extends BaseTask> CompoundBuilder addChild(String identifier, Supplier<T> supplier, Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions) {
+        public <T extends BaseTask<O>> CompoundBuilder<O> addChild(String identifier, CustomBuilder.TaskFactory<O,T> supplier, Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions) {
             return this.addChild(new CustomBuilder<>(identifier, supplier, preconditions));
         }
 
-        public <T extends BaseTask> CompoundBuilder addChild(String identifier, Supplier<T> supplier) {
+        public <T extends BaseTask<O>> CompoundBuilder<O> addChild(String identifier, CustomBuilder.TaskFactory<O,T> supplier) {
             return this.addChild(identifier, supplier, Map.of());
         }
 
-        public CompoundBuilder addChild(BehaviorTreeBuilder<?> builder) {
+        public CompoundBuilder<O> addChild(BehaviorTreeBuilder<O, ?> builder) {
             this.children.add(builder);
             return this;
         }
 
         @Override
-        CompoundTask build() {
-            return new CompoundTask(identifier, state, preconditions, new LinkedList<>(children.stream().map(BehaviorTreeBuilder::build).toList()));
+        CompoundTask<O> build() {
+            return new CompoundTask<>(identifier, state, preconditions, new LinkedList<>(children.stream().map(BehaviorTreeBuilder::build).toList()));
         }
 
     }
 
     // I highly recommend you just make your own Primitive classes.
-    public static class PrimitiveBuilder<O extends TaskOwner> extends BehaviorTreeBuilder<GenericPrimitiveTask<O>> {
+    public static class PrimitiveBuilder<O extends TaskOwner> extends BehaviorTreeBuilder<O, GenericPrimitiveTask<O>> {
 
-        private GenericPrimitiveTask.PrimitiveRun<O> onStart;
+        private GenericPrimitiveTask.PrimitiveStart<O> onStart;
         private GenericPrimitiveTask.PrimitiveTick<O> onTick;
-        private GenericPrimitiveTask.PrimitiveRun<O> onEnd;
+        private GenericPrimitiveTask.PrimitiveEnd<O> onEnd;
 
         Map<MemoryModuleType<?>, TemplateValue<?>> effects;
 
         @SuppressWarnings("unchecked")
         public PrimitiveBuilder(String identifier) {
             super(identifier);
-            this.onStart = (GenericPrimitiveTask.PrimitiveRun<O>) GenericPrimitiveTask.PrimitiveRun.EMPTY;
+            this.onStart = (GenericPrimitiveTask.PrimitiveStart<O>) GenericPrimitiveTask.PrimitiveStart.EMPTY;
             this.onTick = (GenericPrimitiveTask.PrimitiveTick<O>) GenericPrimitiveTask.PrimitiveTick.EMPTY;
-            this.onEnd = (GenericPrimitiveTask.PrimitiveRun<O>) GenericPrimitiveTask.PrimitiveRun.EMPTY;
+            this.onEnd = (GenericPrimitiveTask.PrimitiveEnd<O>) GenericPrimitiveTask.PrimitiveEnd.EMPTY;
             effects = new HashMap<>();
         }
 
@@ -125,7 +126,7 @@ public abstract class BehaviorTreeBuilder<T extends BaseTask> {
             return this;
         }
 
-        public PrimitiveBuilder<O> setOnStart(GenericPrimitiveTask.PrimitiveRun<O> task) {
+        public PrimitiveBuilder<O> setOnStart(GenericPrimitiveTask.PrimitiveStart<O> task) {
             this.onStart = task;
             return this;
         }
@@ -135,7 +136,7 @@ public abstract class BehaviorTreeBuilder<T extends BaseTask> {
             return this;
         }
 
-        public PrimitiveBuilder<O> setOnEnd(GenericPrimitiveTask.PrimitiveRun<O> task) {
+        public PrimitiveBuilder<O> setOnEnd(GenericPrimitiveTask.PrimitiveEnd<O> task) {
             this.onEnd = task;
             return this;
         }
@@ -147,11 +148,11 @@ public abstract class BehaviorTreeBuilder<T extends BaseTask> {
 
     }
 
-    public static class CustomBuilder<T extends BaseTask> extends BehaviorTreeBuilder<T> {
+    public static class CustomBuilder<O extends TaskOwner, T extends BaseTask<O>> extends BehaviorTreeBuilder<O, T> {
 
-        private final Supplier<T> factory;
+        private final TaskFactory<O,T> factory;
 
-        public CustomBuilder(String identifier, Supplier<T> supplier, Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions) {
+        public CustomBuilder(String identifier, TaskFactory<O,T> supplier, Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions) {
             super(identifier);
             this.factory = supplier;
             preconditions.forEach((type, val) -> {
@@ -161,8 +162,11 @@ public abstract class BehaviorTreeBuilder<T extends BaseTask> {
 
         @Override
         T build() {
-            return factory.get();
+            return factory.get(this.preconditions);
         }
 
+        public interface TaskFactory<O extends TaskOwner, T extends BaseTask<O>> {
+            T get(Map<MemoryModuleType<?>, Predicate<MemoryValue<?>>> preconditions);
+        }
     }
 }

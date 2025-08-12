@@ -18,6 +18,15 @@ public class MemoryManager extends ImmutableMemoryManager {
         });
     }
 
+    public void acceptAll(ImmutableMemoryManager manager) {
+        manager.getKeys().forEach(type -> {
+            MemoryValue<?> val = manager.getMemoryValue(type);
+            assert val != null;
+
+            this.setMemoryInternal(type, val.copy());
+        });
+    }
+
     public <T> void removeMemory(MemoryModuleType<T> type) {
         this.memories.remove(type);
     }
@@ -30,7 +39,7 @@ public class MemoryManager extends ImmutableMemoryManager {
         this.setMemoryInternal(type, new MemoryValue<>(type, value, expiryTime));
     }
 
-    private <T> void setMemoryInternal(MemoryModuleType<T> type, MemoryValue<T> value) {
+    private <T> void setMemoryInternal(MemoryModuleType<?> type, MemoryValue<?> value) {
         this.memories.put(type, value);
     }
 

@@ -53,6 +53,12 @@ public class ImmutableMemoryManager {
         return expectedFilter.test(memories.get(type));
     }
 
+    @SuppressWarnings("unchecked")
+    @Nullable
+    protected <T> MemoryValue<T> getMemoryValue(MemoryModuleType<T> type) {
+        return (MemoryValue<T>) memories.get(type);
+    }
+
     // This is stupid-Optimize later.
     // - Warnickwar
     @SuppressWarnings("unchecked")

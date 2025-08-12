@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
-public abstract class BaseTask {
+public abstract class BaseTask<O extends TaskOwner> {
 
     private final String identifier;
 
