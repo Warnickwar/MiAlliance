@@ -1,10 +1,12 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.mialliance.mixin",
+  "package": "com.mialliance.mixins",
   "compatibilityLevel": "JAVA_8",
   "refmap": "mialliance.refmap.json",
   "mixins": [
+  ],
+  "server": [
   ],
   "client": [
   ],

@@ -122,11 +122,6 @@ public abstract class BehaviorTreeBuilder<O extends MindOwner, T extends BaseTas
             return this;
         }
 
-        public <T> PrimitiveBuilder<O> addEffect(MemoryModuleType<T> type, T value, long expiry) {
-            effects.put(type, new TemplateValue<>(type, value, expiry));
-            return this;
-        }
-
         public PrimitiveBuilder<O> setOnStart(GenericPrimitiveTask.PrimitiveStart<O> task) {
             this.onStart = task;
             return this;

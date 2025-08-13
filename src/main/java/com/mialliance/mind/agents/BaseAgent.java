@@ -193,7 +193,7 @@ public class BaseAgent<O extends MindOwner> {
     // TODO: Do better.
 
     public CompoundTag save(CompoundTag tag) {
-        DataResult<Tag> memoriesSerialization = this.memories.getCodec().encodeStart(NbtOps.INSTANCE, this.memories);
+        DataResult<Tag> memoriesSerialization = ImmutableMemoryManager.CODEC.encodeStart(NbtOps.INSTANCE, this.memories);
         AtomicReference<Tag> finalTag = new AtomicReference<>(null);
         memoriesSerialization.get().ifLeft(finalTag::set);
         if (finalTag.get() != null) {
@@ -205,7 +205,7 @@ public class BaseAgent<O extends MindOwner> {
     public void load(CompoundTag tag) {
         if (tag.contains(MEMORIES_DATA_KEY)) {
             Tag memories = tag.get(MEMORIES_DATA_KEY);
-            Either<Pair<ImmutableMemoryManager, Tag>, DataResult.PartialResult<Pair<ImmutableMemoryManager, Tag>>> res = this.memories.getCodec().decode(NbtOps.INSTANCE, memories).get();
+            Either<Pair<ImmutableMemoryManager, Tag>, DataResult.PartialResult<Pair<ImmutableMemoryManager, Tag>>> res = ImmutableMemoryManager.CODEC.decode(NbtOps.INSTANCE, memories).get();
             res.ifLeft(pair -> this.memories = MemoryManager.of(pair.getFirst()));
         }
     }
