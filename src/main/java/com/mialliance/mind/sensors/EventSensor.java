@@ -18,7 +18,12 @@ public abstract class EventSensor<O extends MindOwner, E extends IEvent> extends
     }
 
     @Override
-    public void tick() {}
+    public boolean shouldTick() {
+        return false;
+    }
+
+    @Override
+    public void onTick() {}
 
     @Override
     protected void register() {

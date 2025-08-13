@@ -23,7 +23,7 @@ public enum TaskState {
 
     /**
      * PROCESSING represents an unfinished operation of a Task's execution, indicating to the Planner that it should
-     * tick this Task again and again until the result is complete with the current task.
+     * onTick this Task again and again until the result is complete with the current task.
      */
     PROCESSING
 }

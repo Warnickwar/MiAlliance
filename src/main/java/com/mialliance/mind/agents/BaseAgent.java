@@ -14,27 +14,28 @@ import com.mialliance.mind.sensors.SensorSupplier;
 import com.mialliance.mind.tasks.BaseTask;
 import com.mialliance.mind.tasks.CompoundTask;
 import com.mialliance.mind.tasks.TaskTraversal;
+import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.*;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public class BaseAgent<O extends MindOwner> {
 
+    private static final String MEMORIES_DATA_KEY = "memories";
+
     private final O owner;
 
-    private final MemoryManager memories;
+    private MemoryManager memories;
     private final SensorManager<O> sensors;
     private final EventManager events;
 
@@ -188,6 +189,25 @@ public class BaseAgent<O extends MindOwner> {
     }
 
     // <---> SERIALIZATION <--->
-    // TODO: Fucking do Serialization. Codecs are painful, and I'm tired.
+
+    // TODO: Do better.
+
+    public CompoundTag save(CompoundTag tag) {
+        DataResult<Tag> memoriesSerialization = this.memories.getCodec().encodeStart(NbtOps.INSTANCE, this.memories);
+        AtomicReference<Tag> finalTag = new AtomicReference<>(null);
+        memoriesSerialization.get().ifLeft(finalTag::set);
+        if (finalTag.get() != null) {
+            tag.put(MEMORIES_DATA_KEY, finalTag.get());
+        }
+        return tag;
+    }
+
+    public void load(CompoundTag tag) {
+        if (tag.contains(MEMORIES_DATA_KEY)) {
+            Tag memories = tag.get(MEMORIES_DATA_KEY);
+            Either<Pair<ImmutableMemoryManager, Tag>, DataResult.PartialResult<Pair<ImmutableMemoryManager, Tag>>> res = this.memories.getCodec().decode(NbtOps.INSTANCE, memories).get();
+            res.ifLeft(pair -> this.memories = MemoryManager.of(pair.getFirst()));
+        }
+    }
 
 }

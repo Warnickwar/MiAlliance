@@ -7,9 +7,11 @@ public abstract class BaseSensor<O extends MindOwner> {
 
     @NotNull
     private final O owner;
+    private int cooldown;
 
     protected BaseSensor(@NotNull O owner) {
         this.owner = owner;
+        this.cooldown = 0;
     }
 
     @NotNull
@@ -21,7 +23,18 @@ public abstract class BaseSensor<O extends MindOwner> {
         return true;
     }
 
-    public abstract void tick();
+    public int cooldownToTick() {
+        return 0;
+    }
+
+    public final void tick() {
+        if (this.cooldown-- <= 0) {
+            this.cooldown = cooldownToTick();
+            this.onTick();
+        }
+    }
+
+    public abstract void onTick();
 
     protected abstract void register();
 
