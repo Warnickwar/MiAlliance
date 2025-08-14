@@ -1,8 +1,9 @@
 package com.mialliance.entities;
 
-import com.mialliance.mind.agents.BaseAgent;
-import com.mialliance.mind.agents.MindOwner;
-import com.mialliance.mind.tasks.CompoundTask;
+import com.mialliance.mind.base.agents.BaseAgent;
+import com.mialliance.mind.base.agents.EntityMindOwner;
+import com.mialliance.mind.base.agents.MindOwner;
+import com.mialliance.mind.base.tasks.CompoundTask;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,7 +14,7 @@ import net.minecraft.world.scores.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
 // TODO: Functional Component and Renderable Component system.
-public abstract class AbstractMi<O extends AbstractMi<?>> extends TamableAnimal implements MindOwner, Enemy {
+public abstract class AbstractMi<O extends AbstractMi<?>> extends TamableAnimal implements EntityMindOwner<O>, Enemy {
 
     protected final BaseAgent<O> agentController;
 
@@ -69,6 +70,12 @@ public abstract class AbstractMi<O extends AbstractMi<?>> extends TamableAnimal 
     public void load(@NotNull CompoundTag tag) {
         this.agentController.load(tag.getCompound("agentInformation"));
         super.load(tag);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final O getOwner() {
+        return (O) this;
     }
 
 }
