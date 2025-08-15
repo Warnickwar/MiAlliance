@@ -1,66 +1,60 @@
 package com.mialliance.mind.base.memories;
 
-import com.mojang.datafixers.util.Either;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
-public class TemplateValue<T> {
+import java.util.List;
+
+public abstract class TemplateValue<T> {
 
     private static final long notExpirable = Long.MAX_VALUE;
 
-    private final MemoryModuleType<T> type;
-    private final Either<T, RemoveMemory> value;
-    private final long expiryTime;
+    protected final MemoryModuleType<T> type;
 
-    private TemplateValue(MemoryModuleType<T> type, T value, long expiryTime) {
+    protected TemplateValue(MemoryModuleType<T> type) {
         this.type = type;
-        this.value = Either.left(value);
-        this.expiryTime = expiryTime;
     }
 
-    private TemplateValue(MemoryModuleType<T> type, Either<T, RemoveMemory> value, long expiryTime) {
-        this.type = type;
-        this.value = value.left().<Either<T, RemoveMemory>>map(Either::left).orElseGet(() -> Either.right(RemoveMemory.INSTANCE));
-        this.expiryTime = expiryTime;
+    public abstract boolean isRemovable();
+
+    public abstract void applyToMemories(MemoryManager manager);
+
+    public abstract boolean compare(ImmutableMemoryManager manager);
+
+    public abstract <V extends TemplateValue<T>> V copy();
+
+    public static <T> TemplateValue<T> addExpirableMemory(MemoryModuleType<T> type, T value, long expiryTime) {
+        return new GenericTemplateValue<>(type, value, expiryTime);
     }
 
-    private TemplateValue(MemoryModuleType<T> type) {
-        this.type = type;
-        this.value = Either.right(RemoveMemory.INSTANCE);
-        this.expiryTime = notExpirable;
+    public static <T> TemplateValue<T> addMemory(MemoryModuleType<T> type, T value) {
+        return addExpirableMemory(type, value, notExpirable);
     }
 
-    public boolean isRemovable() {
-        return value.right().isPresent();
+    public static <T> TemplateValue<T> removeMemory(MemoryModuleType<T> type) {
+        return new GenericTemplateValue<>(type);
     }
 
-    public void applyToMemories(MemoryManager manager) {
-        value.ifLeft(val -> {
-            // If not expirable, it's already set to the Max Value- aka not registered as expirable
-            manager.setMemory(type, val, expiryTime);
-        }).ifRight(marker -> manager.removeMemory(type));
+    public static <T> TemplateValue<List<T>> addToListMemory(MemoryModuleType<List<T>> type, T value, int index, long expiryTimeIfNew) {
+        return new AddToListTemplateValue<>(type, value, index, expiryTimeIfNew);
     }
 
-    public boolean compare(ImmutableMemoryManager manager) {
-        return (value.left().isPresent() && manager.compareMemory(type, value.left().get())) && (value.right().isPresent() && !manager.hasMemory(type));
+    public static <T> TemplateValue<List<T>> addToListMemory(MemoryModuleType<List<T>> type, T value, int index) {
+        return addToListMemory(type, value, index, Long.MAX_VALUE);
     }
 
-    public TemplateValue<T> copy() {
-        return new TemplateValue<>(type, value, expiryTime);
+    public static <T> TemplateValue<List<T>> addToListMemory(MemoryModuleType<List<T>> type, T value) {
+        return addToListMemory(type, value, -1);
     }
 
-    public static <T> TemplateValue<T> additiveExpirableMemory(MemoryModuleType<T> type, T value, long expiryTime) {
-        return new TemplateValue<>(type, value, expiryTime);
+    public static <T> TemplateValue<List<T>> removeFromListMemory(MemoryModuleType<List<T>> type, T value) {
+        return new RemoveFromListTemplateValue<>(type, value);
     }
 
-    public static <T> TemplateValue<T> additiveMemory(MemoryModuleType<T> type, T value) {
-        return additiveExpirableMemory(type, value, notExpirable);
+    public static <T> TemplateValue<List<T>> removeFromListMemory(MemoryModuleType<List<T>> type, int index) {
+        return new RemoveFromListTemplateValue<>(type, index);
     }
 
-    public static <T> TemplateValue<T> removableMemory(MemoryModuleType<T> type) {
-        return new TemplateValue<>(type);
-    }
-
-    private enum RemoveMemory {
-        INSTANCE
+    protected enum RemoveMemory {
+        INSTANCE;
     }
 }

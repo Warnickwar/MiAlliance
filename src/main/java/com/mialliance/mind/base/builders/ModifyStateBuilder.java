@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ModifyStateBuilder extends BehaviorTreeBuilder<MindOwner, ModifyStateTask> {
+public class ModifyStateBuilder<O extends MindOwner> extends BehaviorTreeBuilder<O, ModifyStateTask<O>> {
 
     private final Map<MemoryModuleType<?>, TemplateValue<?>> effects;
     private final Set<TemplateValue<?>> memoryChanges;
@@ -24,37 +24,37 @@ public class ModifyStateBuilder extends BehaviorTreeBuilder<MindOwner, ModifySta
     }
 
     @NotNull
-    public <T> ModifyStateBuilder addPrecondition(@NotNull MemoryModuleType<T> type, @NotNull NullablePredicate<T> precondition) {
+    public <T> ModifyStateBuilder<O> addPrecondition(@NotNull MemoryModuleType<T> type, @NotNull NullablePredicate<T> precondition) {
         addPrecondition(this, type, precondition);
         return this;
     }
 
     @NotNull
-    public <T> ModifyStateBuilder addEffect(@NotNull MemoryModuleType<T> type, @NotNull T value) {
-        effects.put(type, TemplateValue.additiveMemory(type, value));
+    public <T> ModifyStateBuilder<O> addEffect(@NotNull MemoryModuleType<T> type, @NotNull T value) {
+        effects.put(type, TemplateValue.addMemory(type, value));
         return this;
     }
 
     @NotNull
-    public <T> ModifyStateBuilder addMemoryChange(@NotNull MemoryModuleType<T> type, @NotNull T value, long expiryTime) {
-        memoryChanges.add(TemplateValue.additiveExpirableMemory(type, value, expiryTime));
+    public <T> ModifyStateBuilder<O> addMemoryChange(@NotNull MemoryModuleType<T> type, @NotNull T value, long expiryTime) {
+        memoryChanges.add(TemplateValue.addExpirableMemory(type, value, expiryTime));
         return this;
     }
 
     @NotNull
-    public <T> ModifyStateBuilder addMemoryChange(@NotNull MemoryModuleType<T> type, @NotNull T value) {
+    public <T> ModifyStateBuilder<O> addMemoryChange(@NotNull MemoryModuleType<T> type, @NotNull T value) {
         return this.addMemoryChange(type, value, Long.MAX_VALUE);
     }
 
     @NotNull
-    public <T> ModifyStateBuilder addMemoryRemoval(@NotNull MemoryModuleType<T> type) {
-        memoryChanges.add(TemplateValue.removableMemory(type));
+    public <T> ModifyStateBuilder<O> addMemoryRemoval(@NotNull MemoryModuleType<T> type) {
+        memoryChanges.add(TemplateValue.removeMemory(type));
         return this;
     }
 
     @Override
-    ModifyStateTask build() {
-        ModifyStateTask task = new ModifyStateTask(identifier, preconditions, effects);
+    ModifyStateTask<O> build() {
+        ModifyStateTask<O> task = new ModifyStateTask<>(identifier, preconditions, effects);
         memoryChanges.forEach(templateValue ->  {
             task.addMemoryTemplate(templateValue.copy());
         });

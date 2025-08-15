@@ -1,9 +1,12 @@
 package com.mialliance.utils;
 
+import com.mialliance.codecs.MutableListCodec;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+
+import java.util.List;
 
 public class ExtraCodecs {
 
@@ -25,6 +28,10 @@ public class ExtraCodecs {
                 return DataResult.success(ops.createNumeric(input.ordinal()));
             }
         };
+    }
+
+    public static <V> Codec<List<V>> mutableListCodec(Codec<V> valueCodec) {
+        return new MutableListCodec<>(valueCodec);
     }
 
 }

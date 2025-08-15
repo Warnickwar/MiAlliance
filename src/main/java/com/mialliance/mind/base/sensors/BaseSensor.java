@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class BaseSensor<O extends MindOwner> {
 
     @NotNull
-    private final O owner;
+    protected final O owner;
     private int cooldown;
 
     protected BaseSensor(@NotNull O owner) {
@@ -23,13 +23,13 @@ public abstract class BaseSensor<O extends MindOwner> {
         return true;
     }
 
-    public int cooldownToTick() {
+    public int ticksToCooldown() {
         return 0;
     }
 
     public final void tick() {
         if (this.cooldown-- <= 0) {
-            this.cooldown = cooldownToTick();
+            this.cooldown = ticksToCooldown();
             this.onTick();
         }
     }

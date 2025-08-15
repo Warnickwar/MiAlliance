@@ -29,7 +29,7 @@ public class PrimitiveBuilder<O extends MindOwner> extends BehaviorTreeBuilder<O
 
     @NotNull
     public <T> PrimitiveBuilder<O> addEffect(@NotNull MemoryModuleType<T> type, @NotNull T value) {
-        effects.put(type, TemplateValue.additiveMemory(type, value));
+        effects.put(type, TemplateValue.addMemory(type, value));
         return this;
     }
 

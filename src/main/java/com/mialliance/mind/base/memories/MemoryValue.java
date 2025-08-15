@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @SuppressWarnings("deprecation")
 public class MemoryValue<T> {
 
-    // FINA-FUCKING-LY this is adequate enough.
+    // FINA-FUCKING-LY this is adequate.
     // - Warnickwar
 
     public static final Codec<MemoryValue<?>> CODEC = new Codec<>() {
@@ -48,8 +48,8 @@ public class MemoryValue<T> {
             if (finalRes.get().result().isEmpty()) return DataResult.error("Could not parse a value for memory type " + Registry.MEMORY_MODULE_TYPE.getKey(type) + "!");
 
             // This is fine because we don't care the actual underlying type, we just care to decode it.
-            //noinspection rawtypes,unchecked
-            MemoryValue<?> finalValue = new MemoryValue<>(type, finalRes.get().result().get());
+            ExpirableValue<?> tempResult = finalRes.get().result().get();
+            MemoryValue<?> finalValue = MemoryValue.from(type, tempResult);
 
             Pair<MemoryValue<?>, K> finalPair = Pair.of(finalValue, input);
             return DataResult.success(finalPair);
@@ -101,6 +101,11 @@ public class MemoryValue<T> {
         this.value.tick();
     }
 
+
+    public MemoryValue<T> copy() {
+        return new MemoryValue<>(type, value.getValue(), value.getTimeToLive());
+    }
+
     // This is such a disgusting hack, but fuck it, I'm lazy.
     @SuppressWarnings("unchecked")
     private Optional<Codec<ExpirableValue<?>>> getGenericCodec() {
@@ -110,13 +115,10 @@ public class MemoryValue<T> {
         return Optional.of((Codec<ExpirableValue<?>>) castCodec);
     }
 
-    public <T> void serialize(DynamicOps<T> ops, RecordBuilder<T> builder) {
-        this.type.getCodec().ifPresent(codec -> {
-            builder.add(Registry.MEMORY_MODULE_TYPE.byNameCodec().encodeStart(ops, type), codec.encodeStart(ops, this.value));
-        });
-    }
-
-    public MemoryValue<T> copy() {
-        return new MemoryValue<T>(type, value.getValue(), value.getTimeToLive());
+    // A hack of a function needed so that the JVM Compiler doesn't fucken yell.
+    //  Functionally, this makes no difference in decoding.
+    @SuppressWarnings("unchecked")
+    private static MemoryValue<?> from(@NotNull MemoryModuleType<?> type, ExpirableValue<?> val) {
+        return new MemoryValue<>((MemoryModuleType<Object>) type, val);
     }
 }

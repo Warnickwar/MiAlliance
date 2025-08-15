@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public final class ModifyStateTask extends PrimitiveTask<MindOwner> {
+public final class ModifyStateTask<O extends MindOwner> extends PrimitiveTask<O> {
 
     private final Set<TemplateValue<?>> changes;
 
@@ -21,24 +21,24 @@ public final class ModifyStateTask extends PrimitiveTask<MindOwner> {
     }
 
     @NotNull
-    public <T> ModifyStateTask addMemoryChange(@NotNull MemoryModuleType<T> key, @NotNull T value, long expiryTime) {
-        changes.add(TemplateValue.additiveExpirableMemory(key, value, expiryTime));
+    public <T> ModifyStateTask<O> addMemoryChange(@NotNull MemoryModuleType<T> key, @NotNull T value, long expiryTime) {
+        changes.add(TemplateValue.addExpirableMemory(key, value, expiryTime));
         return this;
     }
 
     @NotNull
-    public <T> ModifyStateTask addMemoryChange(@NotNull MemoryModuleType<T> key, @NotNull T value) {
+    public <T> ModifyStateTask<O> addMemoryChange(@NotNull MemoryModuleType<T> key, @NotNull T value) {
         return this.addMemoryChange(key, value, Long.MAX_VALUE);
     }
 
     @NotNull
-    public <T> ModifyStateTask addMemoryRemoval(@NotNull MemoryModuleType<T> key) {
-        changes.add(TemplateValue.removableMemory(key));
+    public <T> ModifyStateTask<O> addMemoryRemoval(@NotNull MemoryModuleType<T> key) {
+        changes.add(TemplateValue.removeMemory(key));
         return this;
     }
 
     @NotNull
-    public <T> ModifyStateTask addMemoryTemplate(@NotNull TemplateValue<T> templateValue) {
+    public <T> ModifyStateTask<O> addMemoryTemplate(@NotNull TemplateValue<T> templateValue) {
         changes.add(templateValue);
         return this;
     }

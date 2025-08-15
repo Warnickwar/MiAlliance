@@ -30,7 +30,7 @@ public final class CustomBuilder<O extends MindOwner, T extends BaseTask<O>> ext
 
     @NotNull
     public <V> CustomBuilder<O,T> addEffect(@NotNull MemoryModuleType<V> type, V value) {
-        effects.put(type, TemplateValue.additiveMemory(type, value));
+        effects.put(type, TemplateValue.addMemory(type, value));
         return this;
     }
 

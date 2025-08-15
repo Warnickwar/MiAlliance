@@ -36,7 +36,7 @@ public final class CommunicationBuilder {
 
     @NotNull
     public <T> CommunicationBuilder addEffect(MemoryModuleType<T> key, T value, long expiry) {
-        return addEffect(TemplateValue.additiveExpirableMemory(key, value, expiry));
+        return addEffect(TemplateValue.addExpirableMemory(key, value, expiry));
     }
 
     public Communication build() {
