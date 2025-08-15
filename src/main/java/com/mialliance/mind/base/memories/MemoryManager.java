@@ -1,11 +1,14 @@
 package com.mialliance.mind.base.memories;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
 public class MemoryManager extends ImmutableMemoryManager {
+
+    public static final Codec<MemoryManager> CODEC = ImmutableMemoryManager.CODEC.xmap(MemoryManager::new, ImmutableMemoryManager::new);
 
     public MemoryManager() {
         super();

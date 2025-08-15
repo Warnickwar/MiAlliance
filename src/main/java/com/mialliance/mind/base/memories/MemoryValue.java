@@ -7,7 +7,6 @@ import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,7 +23,8 @@ public class MemoryValue<T> {
         public <K> DataResult<K> encode(MemoryValue<?> input, DynamicOps<K> ops, K prefix) {
             Codec<MemoryModuleType<?>> typeCodec = Registry.MEMORY_MODULE_TYPE.byNameCodec();
             Optional<Codec<ExpirableValue<?>>> valueOptional = input.getGenericCodec();
-            if (valueOptional.isEmpty()) return DataResult.error("Could not a Codec to encode with!");
+            // Don't return error here as it is intentional that some Memories don't have Codecs
+            if (valueOptional.isEmpty()) return DataResult.success(prefix);
             Codec<ExpirableValue<?>> valueCodec = valueOptional.get();
             RecordBuilder<K> map = ops.mapBuilder().add("type", typeCodec.encodeStart(ops, input.type)).add("value", valueCodec.encodeStart(ops, input.value));
             map.build(prefix);

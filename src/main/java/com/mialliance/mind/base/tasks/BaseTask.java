@@ -32,7 +32,7 @@ public abstract class BaseTask<O extends MindOwner> {
         AtomicBoolean bool = new AtomicBoolean(true);
         preconditions.forEach((type, expect) -> {
             if (bool.get()) {
-                bool.set(manager.compareMemory((MemoryModuleType<T>) type, (T) expect));
+                bool.set(manager.compareMemory((MemoryModuleType<T>) type, (NullablePredicate<T>) expect));
             }
         });
         return bool.get();

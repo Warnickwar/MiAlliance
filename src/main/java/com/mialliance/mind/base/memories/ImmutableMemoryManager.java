@@ -11,7 +11,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class ImmutableMemoryManager {
 
@@ -32,11 +31,7 @@ public class ImmutableMemoryManager {
         });
     }
 
-    public ImmutableMemoryManager(LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> values, Supplier<Codec<ImmutableMemoryManager>> codecSupp) {
-        this.memories = values;
-    }
-
-    private ImmutableMemoryManager(List<MemoryValue<?>> values) {
+    protected ImmutableMemoryManager(List<MemoryValue<?>> values) {
         this.memories = new LinkedHashMap<>();
         values.forEach(val -> memories.put(val.getType(), val));
     }
@@ -47,29 +42,30 @@ public class ImmutableMemoryManager {
         return (V) memories.get(type);
     }
 
-    public boolean hasMemory(MemoryModuleType<?> type) {
+    public boolean hasMemory(@NotNull MemoryModuleType<?> type) {
         MemoryValue<?> val;
         // Mapped in Manager and has not expired
         return (val = memories.get(type)) != null && !val.hasExpired();
     }
 
-    public <T> boolean compareMemory(MemoryModuleType<T> type, NullablePredicate<T> expectedFilter) {
+    public <T> boolean compareMemory(@NotNull MemoryModuleType<T> type, @NotNull NullablePredicate<T> expectedFilter) {
         return expectedFilter.test(this.getMemory(type));
     }
 
     @SuppressWarnings("unchecked")
     @Nullable
-    protected <T> MemoryValue<T> getMemoryValue(MemoryModuleType<T> type) {
+    protected <T> MemoryValue<T> getMemoryValue(@NotNull MemoryModuleType<T> type) {
         return (MemoryValue<T>) memories.get(type);
     }
 
     // This is stupid-Optimize later.
     // - Warnickwar
     @SuppressWarnings("unchecked")
-    public <T> boolean compareMemory(MemoryModuleType<T> type, @Nullable T expectedValue) {
+    public <T> boolean compareMemory(@NotNull MemoryModuleType<T> type, @Nullable T expectedValue) {
         MemoryValue<T> memoryVal = (MemoryValue<T>) memories.get(type);
-        if (memoryVal == null && expectedValue == null) return true;
-        assert memoryVal != null;
+        if (memoryVal == null && expectedValue == null) {
+            return true;
+        } else if (memoryVal == null) return false;
         return memoryVal.getValue().equals(expectedValue);
     }
 

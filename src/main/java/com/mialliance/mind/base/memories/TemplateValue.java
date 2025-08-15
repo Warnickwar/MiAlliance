@@ -41,7 +41,7 @@ public class TemplateValue<T> {
     }
 
     public boolean compare(ImmutableMemoryManager manager) {
-        return value.left().isPresent() && manager.compareMemory(type, value.left().get());
+        return (value.left().isPresent() && manager.compareMemory(type, value.left().get())) && (value.right().isPresent() && !manager.hasMemory(type));
     }
 
     public TemplateValue<T> copy() {

@@ -1,6 +1,10 @@
 package com.mialliance.registers;
 
 import com.mialliance.MiAlliance;
+import com.mialliance.colonies.Colony;
+import com.mialliance.entities.AbstractMi;
+import com.mialliance.mind.implementations.communication.CommunicationPriority;
+import com.mialliance.mind.implementations.memories.ColonyReference;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -8,11 +12,78 @@ import net.minecraft.util.Unit;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ModMemoryModules {
 
+    // MARKER MODULES
+
+    /**
+     * A temporary Memory used to swap between different two different Idling Behaviors.
+     * More advanced Idling behaviors can be used by using a separate Memory, or an Integer memory.
+     */
     public static final MemoryModuleType<Unit> IDLE_HAS_MOVED = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "idle_has_moved"));
+    /**
+     * A Memory which indicates that a Mi is an <b>Officer</b>.
+     */
+    public static final MemoryModuleType<Unit> IS_OFFICER = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "is_officer"), Codec.unit(Unit.INSTANCE));
+    /**
+     * A Memory which can only be applied via commands. This makes the Mi not retreat from battle, at any cost.
+     */
+    public static final MemoryModuleType<Unit> NO_FEAR = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "unretreatable"), Codec.unit(Unit.INSTANCE));
+    /**
+     * A Memory which can only be applied via commands. This makes the Mi not available to be in a {@link Colony Colony}, and
+     * makes the Mi immediately depart from whatever {@link Colony Colony} it may be registered to.
+     */
+    public static final MemoryModuleType<Unit> ROGUE = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "no_colony_ever"), Codec.unit(Unit.INSTANCE));
+    /**
+     * A Memory which can only be applied via commands. This makes the Mi not look to be in an Officer Regiment
+     * if the Mi is not an Officer, or abandon the current subordinates and avoid recruiting other Mis if they
+     * are an Officer.
+     */
+    public static final MemoryModuleType<Unit> LONER = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "loner"), Codec.unit(Unit.INSTANCE));
+
+    // RECORD MODULES
+
+    /**
+     * A Memory which indicates what {@link CommunicationPriority Communications} the Mi will accept. This can be a temporary Memory, which indicates that a Mi would be
+     * invalid to accept orders of lower priority until the memory expires. By default, every Mi has a Communication Priority
+     * of 3 ({@link CommunicationPriority#NONE CommunicationPriority.NONE}). Communications can bypass priority by being marked as a Priority intention.
+     */
+    public static final MemoryModuleType<CommunicationPriority> CURRENT_COMMUNICATION_PRIORITY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "communication_priority"), CommunicationPriority.CODEC);
+    /**
+     * A Memory which holds the UUID and BlockPos of the affiliated {@link Colony Colony}. Used for serialization purposes.
+     */
+    public static final MemoryModuleType<ColonyReference> COLONY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "colony"), ColonyReference.CODEC);
+    /**
+     * A Memory which holds the reference to the affiliated {@link Colony Colony}. This does not serialize.
+     */
+    public static final MemoryModuleType<Colony> COLONY_REFERENCE = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "colony_reference"));
+    /**
+     * A Memory which holds the ID of the <b>Officer</b> of the Mi. Used for serialization purposes.
+     */
+    public static final MemoryModuleType<Integer> OFFICER = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "officer"), Codec.INT);
+    /**
+     * A Memory which holds the reference to the current commanding <b>Officer</b>. This does not serialize.
+     */
+    public static final MemoryModuleType<AbstractMi> OFFICER_ENTITY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "officer_reference"));
+    /**
+     * A Memory used by Officers which hold the IDs of Subordinates. Used for serialization purposes.
+     */
+    public static final MemoryModuleType<List<Integer>> SUBORDINATES = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "subordinates"), Codec.INT.listOf());
+    /**
+     * A Memory used by Officers which hold the references to Subordinates. This does not serialize.
+     */
+    public static final MemoryModuleType<List<AbstractMi>> SUBORDINATES_ENTITIES = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "subordinates_reference"));
+
+    // SETTING MODULES
+
+    /**
+     * A Memory used by Mis to determine how far their messages, if they send messages, can go. By default, Mis have a communication range defined
+     * in each individual Agent, so changes to the Memory will override the dispatch range.
+     */
+    public static final MemoryModuleType<Float> MESSAGE_DISPATCH_RANGE = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "voice_volume"), Codec.FLOAT);
 
     @SuppressWarnings("deprecation")
     private static <T> MemoryModuleType<T> register(ResourceLocation id, @Nullable Codec<T> codec) {

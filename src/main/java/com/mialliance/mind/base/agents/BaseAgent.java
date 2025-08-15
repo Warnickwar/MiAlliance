@@ -1,9 +1,10 @@
 package com.mialliance.mind.base.agents;
 
+import com.mialliance.mind.base.communication.CommDispatcher;
+import com.mialliance.mind.base.communication.CommListener;
 import com.mialliance.mind.base.events.EventManager;
 import com.mialliance.mind.base.events.IEvent;
 import com.mialliance.mind.base.events.IEventListener;
-import com.mialliance.mind.base.memories.ImmutableMemoryManager;
 import com.mialliance.mind.base.memories.MemoryManager;
 import com.mialliance.mind.base.planning.TaskPlan;
 import com.mialliance.mind.base.planning.TaskPlanner;
@@ -16,7 +17,7 @@ import com.mialliance.mind.base.tasks.CompoundTask;
 import com.mialliance.mind.base.tasks.TaskTraversal;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.*;
+import com.mojang.serialization.DataResult;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -29,7 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-public class BaseAgent<O extends MindOwner> {
+public abstract class BaseAgent<O extends MindOwner> implements CommListener, CommDispatcher {
 
     private static final String MEMORIES_DATA_KEY = "memories";
 
@@ -76,6 +77,14 @@ public class BaseAgent<O extends MindOwner> {
 
     // <---> BEHAVIOR TREE MANAGEMENT <--->
 
+    /**
+     * Attempts to add a new Behavior Task at the indicated location. Used for modular changes.
+     * The Task will only be added if the path leads to a CompoundTask, and is not null.
+     * @param path The stringified path to traverse to.
+     * @param task The task that is attempting to be added.
+     * @return whether the function was successful in adding the Task.
+     * @param <T> The type of task being added.
+     */
     public <T extends BaseTask<O>> boolean addTask(String path, T task) {
         Optional<BaseTask<O>> result = TaskTraversal.findChild(domain, path);
         if (result.isEmpty()) return false;
@@ -87,6 +96,15 @@ public class BaseAgent<O extends MindOwner> {
         return true;
     }
 
+    /**
+     * Attempts to add a new Behavior Task at the indicated location. Used for modular changes.
+     * The Task will only be added if the path leads to a CompoundTask, and is not null.
+     * @param path The stringified path to traverse to.
+     * @param index The integer <b>Priority</b> of the resulting task. Lower values indicate a higher priority.
+     * @param task The task that is attempting to be added.
+     * @return whether the function was successful in adding the Task.
+     * @param <T> The type of task being added.
+     */
     public <T extends BaseTask<O>> boolean addTask(String path, int index, T task) {
         Optional<BaseTask<O>> result = TaskTraversal.findChild(domain, path);
         if (result.isEmpty()) return false;
@@ -98,6 +116,12 @@ public class BaseAgent<O extends MindOwner> {
         return true;
     }
 
+    /**
+     * Attempts to remove an existing Task from the Behavior Tree. This function should be used with caution,
+     * as removing necessary Tasks from the tree could lobotomize the Agent, and fail to properly work.
+     * @param path The path to the task to remove.
+     * @return An Optional either containing the removed task, or an empty Optional upon failing to remove the task.
+     */
     public Optional<BaseTask<O>> removeTask(String path) {
         String assetID = path.substring(path.lastIndexOf(':')+1);
         String pathID = path.substring(0, path.lastIndexOf(':'));
@@ -158,10 +182,17 @@ public class BaseAgent<O extends MindOwner> {
         this.onTick();
     }
 
+    /**
+     * Whether the current Agent should tick and update itself.
+     * @return
+     */
     protected boolean shouldTick() {
         return true;
     }
 
+    /**
+     * Extra functions that should happen whenever a Tick happens.
+     */
     protected void onTick() { }
 
     // <---> SENSORS <--->
@@ -193,7 +224,7 @@ public class BaseAgent<O extends MindOwner> {
     // TODO: Do better.
 
     public CompoundTag save(CompoundTag tag) {
-        DataResult<Tag> memoriesSerialization = ImmutableMemoryManager.CODEC.encodeStart(NbtOps.INSTANCE, this.memories);
+        DataResult<Tag> memoriesSerialization = MemoryManager.CODEC.encodeStart(NbtOps.INSTANCE, this.memories);
         AtomicReference<Tag> finalTag = new AtomicReference<>(null);
         memoriesSerialization.get().ifLeft(finalTag::set);
         if (finalTag.get() != null) {
@@ -205,7 +236,7 @@ public class BaseAgent<O extends MindOwner> {
     public void load(CompoundTag tag) {
         if (tag.contains(MEMORIES_DATA_KEY)) {
             Tag memories = tag.get(MEMORIES_DATA_KEY);
-            Either<Pair<ImmutableMemoryManager, Tag>, DataResult.PartialResult<Pair<ImmutableMemoryManager, Tag>>> res = ImmutableMemoryManager.CODEC.decode(NbtOps.INSTANCE, memories).get();
+            Either<Pair<MemoryManager, Tag>, DataResult.PartialResult<Pair<MemoryManager, Tag>>> res = MemoryManager.CODEC.decode(NbtOps.INSTANCE, memories).get();
             res.ifLeft(pair -> this.memories = MemoryManager.of(pair.getFirst()));
         }
     }

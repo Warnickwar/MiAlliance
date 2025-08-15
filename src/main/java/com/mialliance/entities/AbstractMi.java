@@ -1,51 +1,51 @@
 package com.mialliance.entities;
 
-import com.mialliance.mind.base.agents.BaseAgent;
 import com.mialliance.mind.base.agents.EntityMindOwner;
-import com.mialliance.mind.base.agents.MindOwner;
+import com.mialliance.mind.base.communication.CommListener;
 import com.mialliance.mind.base.tasks.CompoundTask;
-import net.minecraft.nbt.CompoundTag;
+import com.mialliance.mind.implementations.agents.MiAgent;
+import com.mialliance.utils.OwnerTeamSupplier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 // TODO: Functional Component and Renderable Component system.
-public abstract class AbstractMi<O extends AbstractMi<?>> extends TamableAnimal implements EntityMindOwner<O>, Enemy {
+public abstract class AbstractMi extends TamableAnimal implements Enemy, EntityMindOwner<AbstractMi>, CommListener, OwnerTeamSupplier {
 
-    protected final BaseAgent<O> agentController;
+    private final MiAgent agentInstance;
 
-    @SuppressWarnings("unchecked")
     protected AbstractMi(EntityType<? extends TamableAnimal> p_21803_, Level p_21804_) {
         super(p_21803_, p_21804_);
-        this.agentController = new BaseAgent<>((O) this, this.generateDomainBehaviors());
+        this.agentInstance = this.createAgent(this.createBehaviorDomain());
     }
 
-    protected abstract CompoundTask<O> generateDomainBehaviors();
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public BaseAgent<O> getAgent() {
-        return this.agentController;
-    }
+    // protected abstract CompoundTask<O> generateDomainBehaviors();
 
     @Override
     public void tick() {
         super.tick();
         this.level.getProfiler().push("mialliance:tickingBehaviorAgent");
-        agentController.tick();
+        // Agent Instance handles ticking only if the Entity can tick.
+        agentInstance.tick();
         this.level.getProfiler().pop();
     }
 
+    /**
+     * An Entity predicate indicating whether the current Entity should be attacked.
+     * @param ent The LivingEntity that is being tested.
+     * @return Whether the LivingEntity is a valid target.
+     */
     public boolean isEntityTarget(LivingEntity ent) {
         if (ent instanceof TamableAnimal animal) {
             // Don't target animals which are tamed to the Leader
             if (animal.getOwnerUUID() == this.getOwnerUUID()) {
                 return false;
-            } else if (animal instanceof AbstractMi<?> mi) {
+            } else if (animal instanceof AbstractMi mi) {
                 // Don't target allied Mis
                 return mi.getTeam() != this.getTeam() && !ownerOnSameTeam(this, mi);
             }
@@ -53,29 +53,41 @@ public abstract class AbstractMi<O extends AbstractMi<?>> extends TamableAnimal 
         return true;
     }
 
-    public static boolean ownerOnSameTeam(AbstractMi<?> one, AbstractMi<?> two) {
-        Scoreboard scoreboard;
-        if (one.getOwnerUUID() == null && one.getOwnerUUID() != two.getOwnerUUID()) return false; // Should always return false if both have no owner, aka Alliance Mi
-        if (two.getOwnerUUID() == null) return false; // A final check necessary just in case it didn't go through the first time
-        return (scoreboard = one.getLevel().getScoreboard()).getPlayersTeam(one.getOwnerUUID().toString()) == scoreboard.getPlayersTeam(two.getOwnerUUID().toString());
-    }
-
-    @Override
-    public boolean save(@NotNull CompoundTag tag) {
-        tag.put("agentInformation", this.agentController.save(new CompoundTag()));
-        return super.save(tag);
-    }
-
-    @Override
-    public void load(@NotNull CompoundTag tag) {
-        this.agentController.load(tag.getCompound("agentInformation"));
-        super.load(tag);
-    }
-
+    // Suppression is okay because, at minimum, Mis' Behavior Agents will always inherit
+    //  MiAgent.
     @SuppressWarnings("unchecked")
+    public MiAgent getAgent() {
+        return agentInstance;
+    }
+
     @Override
-    public final O getOwner() {
-        return (O) this;
+    public @Nullable PlayerTeam getOwnerTeam() {
+        if (this.getOwnerUUID() == null) return null;
+        // TODO: Custom Team implementation, because Players not on a team will return Null.
+        return this.getLevel().getScoreboard().getPlayerTeam(this.getOwnerUUID().toString());
+    }
+
+    @Override
+    public @NotNull AbstractMi getEntity() {
+        return this;
+    }
+
+    /**
+     * A constructor function which creates and returns the Mi's Behavior Agent.
+     * The Agent must inherit or be a MiAgent, at minimum.
+     * @param domain The Behavior Tree made for the Agent. This must be passed to the Agent upon construction.
+     * @return A new Agent instance for the Mi.
+     */
+    protected abstract MiAgent createAgent(CompoundTask<EntityMindOwner<AbstractMi>> domain);
+
+    /**
+     * Creates the default Behavior Domain for the current Mi Agent upon initialization.
+     * @return The constructed Domain which encompasses all default behaviors of the Mi for the Agent.
+     */
+    protected abstract CompoundTask<EntityMindOwner<AbstractMi>> createBehaviorDomain();
+
+    public static boolean ownerOnSameTeam(AbstractMi one, AbstractMi two) {
+        return one.getOwnerTeam() == two.getOwnerTeam();
     }
 
 }

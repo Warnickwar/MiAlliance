@@ -2,6 +2,7 @@ package com.mialliance.mind.base.builders;
 
 import com.mialliance.mind.base.NullablePredicate;
 import com.mialliance.mind.base.agents.MindOwner;
+import com.mialliance.mind.base.tasks.BaseTask;
 import com.mialliance.mind.base.tasks.CompoundState;
 import com.mialliance.mind.base.tasks.CompoundTask;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -35,7 +36,7 @@ public class CompoundBuilder<O extends MindOwner> extends BehaviorTreeBuilder<O,
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public CompoundBuilder<O> addChild(BehaviorTreeBuilder<? extends O, ?> builder) {
+    public CompoundBuilder<O> addChild(BehaviorTreeBuilder<? extends O, ? extends BaseTask<O>> builder) {
         this.children.add((BehaviorTreeBuilder<O, ?>) builder);
         return this;
     }
