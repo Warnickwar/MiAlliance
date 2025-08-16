@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WorldUtils {
 
+    // TODO: See how expensive this calculation is.
     @Nullable
     public static AbstractMi getMi(int entityID, Level level) {
         Entity foundEnt = level.getEntity(entityID);

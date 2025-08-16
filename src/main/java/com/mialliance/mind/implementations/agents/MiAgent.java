@@ -36,10 +36,10 @@ public class MiAgent extends BaseAgent<EntityMindOwner<AbstractMi>> {
     @Override
     public void onRecieveMessage(@NotNull Communication comm) {
         // If the communication is not from the same team, ignore-we DON'T want to listen to orders from enemies!
-        if (!CommUtils.onSameTeam(comm.getOrigin(), this.getOwner().getEntity())) return;
+        if (!CommUtils.onSameTeam(comm.origin(), this.getOwner().getEntity())) return;
 
         // If the communication is not meant for Mis, ignore.
-        if (!(comm.getIntent() instanceof MiBoundCommIntent)) return;
+        if (!(comm.intent() instanceof MiBoundCommIntent)) return;
 
         // If the Mi aleady has encountered the Communication and remembers it
         if (this.tracker.remembersCommunication(comm)) return;
@@ -50,7 +50,7 @@ public class MiAgent extends BaseAgent<EntityMindOwner<AbstractMi>> {
         if (event.isCancelled()) return;
 
         // If it is a communication that is priority, force application
-        if (comm.getIntent().priorityIntent()) {
+        if (comm.intent().priorityIntent()) {
             comm.applyToMemories(this.getMemories());
             return;
         }
@@ -59,7 +59,7 @@ public class MiAgent extends BaseAgent<EntityMindOwner<AbstractMi>> {
         if (currentPriority == null) currentPriority = CommunicationPriority.NONE;
         AtomicReference<CommunicationPriority> pri = new AtomicReference<>(null);
         for (CommunicationPriority commP : CommunicationPriority.values()) {
-            if (pri.get() == null && commP.getCommunicationPair() == comm.getIntent().getClass()) {
+            if (pri.get() == null && commP.getCommunicationPair() == comm.intent().getClass()) {
                 pri.set(commP);
             }
         }
@@ -72,6 +72,7 @@ public class MiAgent extends BaseAgent<EntityMindOwner<AbstractMi>> {
         if (commPriority.ordinal() <= currentPriority.ordinal()) {
             this.getMemories().setMemory(ModMemoryModules.CURRENT_COMMUNICATION_PRIORITY, commPriority);
             comm.applyToMemories(this.getMemories());
+            this.abortCurrentPlan();
             this.tracker.addCommunication(comm);
         }
         // Otherwise, we discard the comm as unimportant, and do not act on it.

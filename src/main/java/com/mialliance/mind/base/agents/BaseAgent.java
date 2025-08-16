@@ -41,7 +41,7 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
     private final EventManager events;
 
     private CompoundTask<O> domain;
-    private TaskPlan<O> plan;
+    private volatile AtomicReference<TaskPlan<O>> plan;
 
     public BaseAgent(@NotNull O owner, @NotNull CompoundTask<O> domain) {
         this.domain = domain;
@@ -72,7 +72,7 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
     }
 
     public final void abortCurrentPlan() {
-        if (this.plan != null) this.plan.end();
+        this.plan.setRelease(null);
     }
 
     // <---> BEHAVIOR TREE MANAGEMENT <--->
@@ -175,11 +175,11 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
         // Tick Sensors before the Plan is made, such that any new plans are properly evaluated and updated with proper memories
         this.sensors.tick();
 
-        if (this.plan == null || this.plan.isComplete()) {
-            this.plan = TaskPlanner.makePlan(this.owner);
+        if (this.plan == null || this.plan.get().isComplete()) {
+            this.plan.set(TaskPlanner.makePlan(this.owner));
         }
 
-        this.plan.tick();
+        this.plan.get().tick();
 
         this.onTick();
     }

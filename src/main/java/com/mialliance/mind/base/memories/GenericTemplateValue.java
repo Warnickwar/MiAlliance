@@ -4,6 +4,8 @@ import com.mojang.datafixers.util.Either;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class GenericTemplateValue<T> extends TemplateValue<T> {
 
     private final Either<T, RemoveMemory> value;
@@ -46,12 +48,37 @@ public class GenericTemplateValue<T> extends TemplateValue<T> {
     @SuppressWarnings("unchecked")
     @Override
     public GenericTemplateValue<T> copy() {
-        if (this.value.right().isPresent()) {
+        if (isRemovable()) {
             return new GenericTemplateValue<>(type);
         } else {
             assert value.left().isPresent();
             return new GenericTemplateValue<>(type, value.left().get(), expiryTime);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("SetMemory{type=").append(type);
+        if (isRemovable()) {
+            builder.append(",removable=true");
+        } else {
+            assert value.left().isPresent();
+            builder.append(",value=").append(value.left().get());
+        }
+        return builder.append('}').toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        GenericTemplateValue<?> that = (GenericTemplateValue<?>) o;
+        return expiryTime == that.expiryTime && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value, expiryTime);
     }
 
 }

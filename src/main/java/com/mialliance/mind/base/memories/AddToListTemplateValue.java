@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class AddToListTemplateValue<T> extends TemplateValue<List<T>> {
 
@@ -70,6 +71,30 @@ public class AddToListTemplateValue<T> extends TemplateValue<List<T>> {
 
     private boolean isInRange(List<T> list) {
         return list.size() > index && index < 0;
+    }
+
+    @Override
+    public String toString() {
+        // Type and Value is always definitive
+        StringBuilder builder = new StringBuilder("AddToList{type=").append(type).append(",value=").append(value);
+        // Specific Index is uncertain, append only if not at end
+        if (this.hasSpecialIndex()) builder.append(",index=").append(index);
+        // Expiry Time is uncertain, append only if timed
+        if (expiryTimeIfNew != Long.MAX_VALUE) builder.append(",newValueExpiryTime=").append(expiryTimeIfNew);
+        return builder.append('}').toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        AddToListTemplateValue<?> that = (AddToListTemplateValue<?>) o;
+        return index == that.index && expiryTimeIfNew == that.expiryTimeIfNew && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value, index, expiryTimeIfNew);
     }
 
 }

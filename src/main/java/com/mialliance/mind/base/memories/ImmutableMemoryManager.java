@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ImmutableMemoryManager {
 
@@ -18,21 +18,21 @@ public class ImmutableMemoryManager {
         MemoryValue.CODEC.listOf().fieldOf("memories").forGetter(ImmutableMemoryManager::getValues)
     ).apply(inst, ImmutableMemoryManager::new));
 
-    protected final LinkedHashMap<MemoryModuleType<?>, MemoryValue<?>> memories;
+    protected final ConcurrentHashMap<MemoryModuleType<?>, MemoryValue<?>> memories;
 
     public ImmutableMemoryManager() {
-        this.memories = new LinkedHashMap<>();
+        this.memories = new ConcurrentHashMap<>();
     }
 
     protected ImmutableMemoryManager(ImmutableMemoryManager original) {
-        this.memories = new LinkedHashMap<>();
+        this.memories = new ConcurrentHashMap<>();
         original.memories.forEach((type, val) -> {
             this.memories.put(type, val.copy());
         });
     }
 
     protected ImmutableMemoryManager(List<MemoryValue<?>> values) {
-        this.memories = new LinkedHashMap<>();
+        this.memories = new ConcurrentHashMap<>();
         values.forEach(val -> memories.put(val.getType(), val));
     }
 

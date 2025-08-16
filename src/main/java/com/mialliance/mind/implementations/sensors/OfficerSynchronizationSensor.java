@@ -16,7 +16,10 @@ import java.util.Map;
 
 public class OfficerSynchronizationSensor extends BaseSensor<AbstractMi> {
 
-    private static final int SYNC_ATTEMPTS = 10;
+    // 200 * 2 = 400 Ticks
+    //  400 / 20 == 20 Seconds
+    //  Probably should increase this.
+    private static final int SYNC_ATTEMPTS = 200;
 
     private final MemoryManager manager;
     private final Map<Integer, AbstractMi> syncMap;
@@ -69,7 +72,7 @@ public class OfficerSynchronizationSensor extends BaseSensor<AbstractMi> {
                         //  RIP subordinate, 0/10, you will not be missed for you were dishonorably discharged
                         ids.remove(id);
                     } else {
-                        syncAttempts.put(id, attempt++);
+                        syncAttempts.put(id, ++attempt);
                     }
                     return;
                 }

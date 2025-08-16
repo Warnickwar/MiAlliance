@@ -3,6 +3,7 @@ package com.mialliance.mind.base.memories;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
 import java.util.List;
+import java.util.Objects;
 
 public abstract class TemplateValue<T> {
 
@@ -52,6 +53,18 @@ public abstract class TemplateValue<T> {
 
     public static <T> TemplateValue<List<T>> removeFromListMemory(MemoryModuleType<List<T>> type, int index) {
         return new RemoveFromListTemplateValue<>(type, index);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        TemplateValue<?> that = (TemplateValue<?>) o;
+        return Objects.equals(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(type);
     }
 
     protected enum RemoveMemory {
