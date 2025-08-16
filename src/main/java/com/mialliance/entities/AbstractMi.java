@@ -14,6 +14,8 @@ import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.mialliance.utils.TeamUtils.ownerOnSameTeam;
+
 // TODO: Functional Component and Renderable Component system.
 public abstract class AbstractMi extends TamableAnimal implements Enemy, EntityMindOwner<AbstractMi>, CommListener, OwnerTeamSupplier {
 
@@ -85,9 +87,5 @@ public abstract class AbstractMi extends TamableAnimal implements Enemy, EntityM
      * @return The constructed Domain which encompasses all default behaviors of the Mi for the Agent.
      */
     protected abstract CompoundTask<EntityMindOwner<AbstractMi>> createBehaviorDomain();
-
-    public static boolean ownerOnSameTeam(AbstractMi one, AbstractMi two) {
-        return one.getOwnerTeam() == two.getOwnerTeam();
-    }
 
 }

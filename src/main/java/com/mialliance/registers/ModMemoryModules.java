@@ -70,17 +70,9 @@ public class ModMemoryModules {
      */
     public static final MemoryModuleType<ColonyReference> COLONY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "colony"), ColonyReference.CODEC);
     /**
-     * A Memory which holds the reference to the affiliated {@link Colony Colony}. This does not serialize.
-     */
-    public static final MemoryModuleType<Colony> COLONY_REFERENCE = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "colony_reference"));
-    /**
      * A Memory which holds the ID of the <b>Officer</b> of the Mi. Used for serialization purposes.
      */
     public static final MemoryModuleType<Integer> OFFICER = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "officer"), Codec.INT);
-    /**
-     * A Memory which holds the reference to the current commanding <b>Officer</b>. This does not serialize.
-     */
-    public static final MemoryModuleType<AbstractMi> OFFICER_ENTITY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "officer_reference"));
     /**
      * A Memory used by Officers which hold the IDs of Subordinates. Used for serialization purposes.
      */
@@ -122,6 +114,10 @@ public class ModMemoryModules {
      * in each individual Agent, so changes to the Memory will override the dispatch range.
      */
     public static final MemoryModuleType<Float> MESSAGE_DISPATCH_RANGE = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "voice_volume"), Codec.FLOAT);
+    /**
+     * A Memory used by Mis to determine if they should be in Melee attacks, or Ranged attacks. If the Memory is not registered, assume that it is a Melee attack.
+     */
+    public static final MemoryModuleType<Boolean> IS_MELEE = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "is_melee"), Codec.BOOL);
 
     // RESPONSE MODULES
 

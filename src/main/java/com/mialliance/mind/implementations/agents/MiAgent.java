@@ -6,6 +6,7 @@ import com.mialliance.mind.base.agents.EntityMindOwner;
 import com.mialliance.mind.base.communication.CommListener;
 import com.mialliance.mind.base.communication.Communication;
 import com.mialliance.mind.base.communication.CommunicationTracker;
+import com.mialliance.mind.base.events.CommunicationEvent;
 import com.mialliance.mind.base.memories.MemoryManager;
 import com.mialliance.mind.base.tasks.CompoundTask;
 import com.mialliance.mind.implementations.communication.CommunicationPriority;
@@ -42,6 +43,11 @@ public class MiAgent extends BaseAgent<EntityMindOwner<AbstractMi>> {
 
         // If the Mi aleady has encountered the Communication and remembers it
         if (this.tracker.remembersCommunication(comm)) return;
+
+        // If, for whatever reason, Components and Sensors accept Communications, check if Communication should be applied
+        CommunicationEvent event = new CommunicationEvent(comm);
+        this.emit(event);
+        if (event.isCancelled()) return;
 
         // If it is a communication that is priority, force application
         if (comm.getIntent().priorityIntent()) {
@@ -106,23 +112,21 @@ public class MiAgent extends BaseAgent<EntityMindOwner<AbstractMi>> {
         }
 
         // TODO: Pull to AbstractMi instead of having here
-        if (memoryManager.hasMemory(ModMemoryModules.ROGUE) && memoryManager.hasMemory(ModMemoryModules.COLONY_REFERENCE)) {
+        if (memoryManager.hasMemory(ModMemoryModules.ROGUE) && memoryManager.hasMemory(ModMemoryModules.COLONY)) {
             // TODO: Tell the Colony they're fucking off
             memoryManager.removeMemory(ModMemoryModules.COLONY);
-            memoryManager.removeMemory(ModMemoryModules.COLONY_REFERENCE);
         }
 
+        // Don't want to be in a Group
         if (memoryManager.hasMemory(ModMemoryModules.LONER)) {
             if (memoryManager.hasMemory(ModMemoryModules.OFFICER)) {
                 // TODO: Tell the Officer they're fucking off
                 memoryManager.removeMemory(ModMemoryModules.OFFICER);
-                memoryManager.removeMemory(ModMemoryModules.OFFICER_ENTITY);
             }
 
             if (memoryManager.hasMemory(ModMemoryModules.SUBORDINATES)) {
                 // TODO: Tell the Subordinates they're relieved of duty
                 memoryManager.removeMemory(ModMemoryModules.SUBORDINATES);
-                memoryManager.removeMemory(ModMemoryModules.SUBORDINATES_ENTITIES);
             }
         }
     }

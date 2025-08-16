@@ -172,11 +172,13 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
     public final void tick() {
         if (!this.shouldTick()) return;
 
+        // Tick Sensors before the Plan is made, such that any new plans are properly evaluated and updated with proper memories
+        this.sensors.tick();
+
         if (this.plan == null || this.plan.isComplete()) {
             this.plan = TaskPlanner.makePlan(this.owner);
         }
 
-        this.sensors.tick();
         this.plan.tick();
 
         this.onTick();
@@ -184,7 +186,7 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
 
     /**
      * Whether the current Agent should tick and update itself.
-     * @return
+     * @return The agent's capability to tick
      */
     protected boolean shouldTick() {
         return true;
@@ -217,6 +219,10 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
 
     public boolean removeListener(IEventListener<?> listener) {
         return this.events.unregisterListener(listener);
+    }
+
+    public <T extends IEvent> void emit(T event) {
+        this.events.call(event);
     }
 
     // <---> SERIALIZATION <--->
