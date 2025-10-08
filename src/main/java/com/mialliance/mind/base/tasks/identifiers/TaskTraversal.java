@@ -1,6 +1,8 @@
-package com.mialliance.mind.base.tasks;
+package com.mialliance.mind.base.tasks.identifiers;
 
 import com.mialliance.mind.base.agents.MindOwner;
+import com.mialliance.mind.base.tasks.BaseTask;
+import com.mialliance.mind.base.tasks.CompoundTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -8,22 +10,6 @@ import java.util.Optional;
 public final class TaskTraversal {
 
     private static final char TRAVERSAL_SEPARATOR = ':';
-
-    /**
-     * Constructs a Task Path to the indicated task.
-     * @param ids The task IDs that should be traversed, in order.
-     * @return The constructed String which should indicate the path.
-     */
-    @NotNull
-    public static String createPath(@NotNull String... ids) {
-        // Use a StringBuilder to avoid creating unnecessary intermediary objects when merging
-        // IDs.
-        StringBuilder builder = new StringBuilder();
-        for (String id : ids) {
-            builder.append(id).append(TRAVERSAL_SEPARATOR);
-        }
-        return builder.toString();
-    }
 
     /**
      * A utility function used to traverse a Domain and attempt to find a Task based on a String path.
@@ -40,10 +26,10 @@ public final class TaskTraversal {
         CompoundTask<O> currentTask = domain;
 
         for (String id : parts) {
-            Optional<BaseTask<O>> foundTask = currentTask.findChild(id);
-            if (foundTask.isEmpty()) return Optional.empty();
+            CompoundTask.TaskSearchResult<O, BaseTask<O>> foundTask = currentTask.findChild(id);
+            if (!foundTask.isFound()) return Optional.empty();
 
-            BaseTask<O> obtained = foundTask.get();
+            BaseTask<O> obtained = foundTask.getTask();
             if (obtained instanceof CompoundTask<O> cTask) {
                 currentTask = cTask;
             } else {

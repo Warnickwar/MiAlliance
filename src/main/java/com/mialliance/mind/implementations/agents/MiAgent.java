@@ -1,11 +1,10 @@
 package com.mialliance.mind.implementations.agents;
 
-import com.mialliance.entities.AbstractMi;
 import com.mialliance.mind.base.agents.BaseAgent;
 import com.mialliance.mind.base.agents.EntityMindOwner;
-import com.mialliance.mind.base.communication.CommListener;
-import com.mialliance.mind.base.communication.Communication;
-import com.mialliance.mind.base.communication.CommunicationTracker;
+import com.mialliance.communication.CommListener;
+import com.mialliance.communication.Communication;
+import com.mialliance.communication.CommunicationTracker;
 import com.mialliance.mind.base.events.CommunicationEvent;
 import com.mialliance.mind.base.memories.MemoryManager;
 import com.mialliance.mind.base.tasks.CompoundTask;

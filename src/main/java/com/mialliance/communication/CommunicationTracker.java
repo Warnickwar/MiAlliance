@@ -1,4 +1,4 @@
-package com.mialliance.mind.base.communication;
+package com.mialliance.communication;
 
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import org.jetbrains.annotations.NotNull;

@@ -1,4 +1,4 @@
-package com.mialliance.mind.base.communication;
+package com.mialliance.communication;
 
 import com.mialliance.mind.base.memories.MemoryManager;
 import com.mialliance.mind.base.memories.TemplateValue;

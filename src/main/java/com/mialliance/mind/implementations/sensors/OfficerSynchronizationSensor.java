@@ -1,6 +1,5 @@
 package com.mialliance.mind.implementations.sensors;
 
-import com.mialliance.entities.AbstractMi;
 import com.mialliance.mind.base.memories.MemoryManager;
 import com.mialliance.mind.base.sensors.BaseSensor;
 import com.mialliance.registers.ModMemoryModules;

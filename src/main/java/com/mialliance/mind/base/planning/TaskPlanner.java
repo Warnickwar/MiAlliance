@@ -5,9 +5,12 @@ import com.mialliance.mind.base.memories.MemoryManager;
 import com.mialliance.mind.base.tasks.BaseTask;
 import com.mialliance.mind.base.tasks.CompoundTask;
 import com.mialliance.mind.base.tasks.PrimitiveTask;
+import com.mialliance.mind.base.tasks.identifiers.TaskIdentifier;
+import com.mialliance.threading.JobManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
+import java.util.concurrent.Future;
 
 /**
  * Code inspiration and help obtained from @1mangomaster1 on Discord, and
@@ -16,15 +19,17 @@ import java.util.LinkedList;
 public final class TaskPlanner {
 
     @SuppressWarnings("unchecked")
-    public static <O extends MindOwner> TaskPlan<O> makePlan(@NotNull O owner) {
-        LinkedList<PrimitiveTask<O>> currentTasks = new LinkedList<>();
-        step((BaseTask<O>) owner.getAgent().getDomain(), MemoryManager.of(owner.getAgent().getMemories()), currentTasks);
-
-        return new TaskPlan<>(owner, currentTasks);
+    public static <O extends MindOwner> Future<TaskPlan<O>> makePlan(@NotNull O owner) {
+        return JobManager.submitJob(() -> {
+            LinkedList<PrimitiveTask<O>> currentTasks = new LinkedList<>();
+            LinkedList<TaskIdentifier> currentIdentifiers = new LinkedList<>();
+            step((BaseTask<O>) owner.getAgent().getDomain(), MemoryManager.of(owner.getAgent().getMemories()), currentTasks, currentIdentifiers);
+            return new TaskPlan<>(owner, currentTasks, currentIdentifiers);
+        });
     }
 
     // Public solely for capability to add more CompoundStates.
-    public static <O extends MindOwner> boolean step(BaseTask<O> task, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks) {
+    public static <O extends MindOwner> boolean step(BaseTask<O> task, @NotNull MemoryManager state, @NotNull LinkedList<PrimitiveTask<O>> currentTasks, @NotNull LinkedList<TaskIdentifier> identifiers, @NotNull TaskIdentifier currentStack) {
         // TODO: When reaching higher Java version, switch to
         //  implicit casting Switch statements.
         if (task instanceof CompoundTask<O> cTask) {

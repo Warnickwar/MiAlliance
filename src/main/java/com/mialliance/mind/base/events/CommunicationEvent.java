@@ -1,6 +1,6 @@
 package com.mialliance.mind.base.events;
 
-import com.mialliance.mind.base.communication.Communication;
+import com.mialliance.communication.Communication;
 import org.jetbrains.annotations.NotNull;
 
 public class CommunicationEvent implements IEvent, ICancellableEvent {

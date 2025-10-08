@@ -1,6 +1,6 @@
 package com.mialliance.mind.implementations.communication;
 
-import com.mialliance.mind.base.communication.CommIntent;
+import com.mialliance.communication.CommIntent;
 import com.mialliance.utils.ExtraCodecs;
 import com.mojang.serialization.Codec;
 

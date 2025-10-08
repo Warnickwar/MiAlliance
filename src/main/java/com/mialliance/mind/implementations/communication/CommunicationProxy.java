@@ -1,7 +1,7 @@
 package com.mialliance.mind.implementations.communication;
 
-import com.mialliance.mind.base.communication.CommDispatcher;
-import com.mialliance.mind.base.communication.CommListener;
+import com.mialliance.communication.CommDispatcher;
+import com.mialliance.communication.CommListener;
 import com.mialliance.utils.OwnerTeamSupplier;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;

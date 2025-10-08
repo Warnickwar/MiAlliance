@@ -1,8 +1,8 @@
 package com.mialliance.colonies;
 
-import com.mialliance.mind.base.communication.CommDispatcher;
-import com.mialliance.mind.base.communication.CommListener;
-import com.mialliance.mind.base.communication.Communication;
+import com.mialliance.communication.CommDispatcher;
+import com.mialliance.communication.CommListener;
+import com.mialliance.communication.Communication;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;

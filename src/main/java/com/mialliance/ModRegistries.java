@@ -1,6 +1,8 @@
 package com.mialliance;
 
 import com.mialliance.buildings.BuildingType;
+import com.mialliance.components.ComponentType;
+import com.mialliance.registers.ModComponents;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -15,18 +17,21 @@ public class ModRegistries {
     public static class KEYS {
 
         public static final ResourceKey<Registry<BuildingType<?>>> BUILDINGS = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "buildings"));
+        public static final ResourceKey<Registry<ComponentType<?, ?>>> COMPONENTS = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "components"));
 
     }
 
     public static class REGISTRIES {
 
         public static final Registry<BuildingType<?>> BUILDINGS;
+        public static final Registry<ComponentType<?, ?>> COMPONENTS;
 
         static {
             // Forced to do this try/catch otherwise won't compile.
             // Good practice I suppose, but annoying.
             try {
                 BUILDINGS = registerSimple(KEYS.BUILDINGS, (reg) -> null);
+                COMPONENTS = registerSimple(KEYS.COMPONENTS, (reg) -> ModComponents.GENERIC.DUMMY);
             } catch (Exception e) {
                 throw new IllegalStateException("(MiAlliance) Cannot create the Mod Registries!");
             }

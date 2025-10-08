@@ -1,6 +1,6 @@
 package com.mialliance.utils;
 
-import com.mialliance.mind.base.communication.CommDispatcher;
+import com.mialliance.communication.CommDispatcher;
 
 public final class CommUtils {
 

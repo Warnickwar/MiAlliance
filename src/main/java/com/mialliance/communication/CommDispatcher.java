@@ -1,4 +1,4 @@
-package com.mialliance.mind.base.communication;
+package com.mialliance.communication;
 
 import java.util.Set;
 

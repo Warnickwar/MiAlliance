@@ -1,9 +1,9 @@
 package com.mialliance.mind.base.builders;
 
-import com.mialliance.mind.base.communication.CommDispatcher;
-import com.mialliance.mind.base.communication.CommIntent;
-import com.mialliance.mind.base.communication.Communication;
-import com.mialliance.mind.base.communication.CommunicationManager;
+import com.mialliance.communication.CommDispatcher;
+import com.mialliance.communication.CommIntent;
+import com.mialliance.communication.Communication;
+import com.mialliance.communication.CommunicationManager;
 import com.mialliance.mind.base.memories.TemplateValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.NotNull;

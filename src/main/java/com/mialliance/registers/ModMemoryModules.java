@@ -2,7 +2,7 @@ package com.mialliance.registers;
 
 import com.mialliance.MiAlliance;
 import com.mialliance.colonies.Colony;
-import com.mialliance.mind.base.communication.Communication;
+import com.mialliance.communication.Communication;
 import com.mialliance.mind.implementations.communication.CommunicationPriority;
 import com.mialliance.mind.implementations.memories.ColonyReference;
 import com.mialliance.utils.ExtraCodecs;

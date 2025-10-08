@@ -1,6 +1,5 @@
 package com.mialliance.utils;
 
-import com.mialliance.entities.AbstractMi;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;

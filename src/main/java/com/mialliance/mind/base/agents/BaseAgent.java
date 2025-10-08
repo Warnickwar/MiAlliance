@@ -1,7 +1,7 @@
 package com.mialliance.mind.base.agents;
 
-import com.mialliance.mind.base.communication.CommDispatcher;
-import com.mialliance.mind.base.communication.CommListener;
+import com.mialliance.communication.CommDispatcher;
+import com.mialliance.communication.CommListener;
 import com.mialliance.mind.base.events.EventManager;
 import com.mialliance.mind.base.events.IEvent;
 import com.mialliance.mind.base.events.IEventListener;
@@ -14,7 +14,6 @@ import com.mialliance.mind.base.sensors.SensorManager;
 import com.mialliance.mind.base.sensors.SensorSupplier;
 import com.mialliance.mind.base.tasks.BaseTask;
 import com.mialliance.mind.base.tasks.CompoundTask;
-import com.mialliance.mind.base.tasks.TaskTraversal;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
@@ -27,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -34,14 +35,16 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
 
     private static final String MEMORIES_DATA_KEY = "memories";
 
-    private final O owner;
+    protected final O owner;
 
     private MemoryManager memories;
     private final SensorManager<O> sensors;
     private final EventManager events;
 
     private CompoundTask<O> domain;
-    private volatile AtomicReference<TaskPlan<O>> plan;
+    private final AtomicReference<TaskPlan<O>> plan;
+    @Nullable
+    private volatile Future<TaskPlan<O>> thinkingPlan = null;
 
     public BaseAgent(@NotNull O owner, @NotNull CompoundTask<O> domain) {
         this.domain = domain;
@@ -50,6 +53,8 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
         this.memories = new MemoryManager();
         this.sensors = new SensorManager<>();
         this.events = new EventManager();
+
+        this.plan = new AtomicReference<>(null);
     }
 
     // <---> Getters / Setters <--->
@@ -173,13 +178,29 @@ public abstract class BaseAgent<O extends MindOwner> implements CommListener, Co
         if (!this.shouldTick()) return;
 
         // Tick Sensors before the Plan is made, such that any new plans are properly evaluated and updated with proper memories
+        //  This is less important now that planning is asynchronous, but it will allow the first evaluation to have updated information.
+        //  Planning should not take more than a tick for any reason.
         this.sensors.tick();
 
-        if (this.plan == null || this.plan.get().isComplete()) {
-            this.plan.set(TaskPlanner.makePlan(this.owner));
+
+        // NOTE: This comes with the caveat that whenever planning a new action plan, it takes 1 tick at minimum to evaluate.
+        //  I suppose this is adequate enough for the sake of avoiding lag when many agents plan at the same time.
+        if (this.thinkingPlan == null && (this.plan.get() == null || this.plan.get().isComplete())) {
+            if (this.plan.get() != null) this.plan.set(null);
+            this.thinkingPlan = TaskPlanner.makePlan(owner);
+        } else if (this.thinkingPlan != null && Objects.requireNonNull(this.thinkingPlan).isDone()) {
+            try {
+                this.plan.set(Objects.requireNonNull(this.thinkingPlan).get());
+                this.thinkingPlan = null;
+            } catch (InterruptedException | ExecutionException e) {
+                // TODO: More comprehensive logging with this.
+                throw new IllegalStateException("An agent failed to update its plan!");
+            }
         }
 
-        this.plan.get().tick();
+        if (this.plan.get() != null) {
+            this.plan.get().tick();
+        }
 
         this.onTick();
     }
