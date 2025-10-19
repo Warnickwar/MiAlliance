@@ -1,8 +1,10 @@
 package com.mialliance.mind.base.memory;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,12 +32,19 @@ public class RemoveFromListTemplateValue<T> extends TemplateValue <List<T>>  {
     public void applyToMemories(MemoryManager manager) {
         List<T> value = manager.getMemory(type);
         if (value == null) return;
+        List<T> res;
         if (isByIndex()) {
             int index = valToRemove.right().get();
-            value.remove(index);
+            List<T> temp = new ArrayList<>(value);
+            temp.remove(index);
+            res = ImmutableList.copyOf(temp);
+            manager.setMemory(type, res);
         } else {
             T obj = valToRemove.left().get();
-            value.remove(obj);
+            List<T> temp = new ArrayList<>(value);
+            temp.remove(obj);
+            res = ImmutableList.copyOf(temp);
+            manager.setMemory(type, res);
         }
     }
 

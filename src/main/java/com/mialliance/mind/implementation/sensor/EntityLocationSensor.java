@@ -1,6 +1,7 @@
-package com.mialliance.mind.base.sensor;
+package com.mialliance.mind.implementation.sensor;
 
 import com.mialliance.MiAllianceConstants;
+import com.mialliance.mind.base.sensor.MindSensor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
@@ -67,6 +68,10 @@ public class EntityLocationSensor extends MindSensor {
     public EntityLocationSensor onLocationChange(Consumer<EntityLocationSensor> run) {
         this.listenersToChange.add(run);
         return this;
+    }
+
+    public void removeListener(Consumer<EntityLocationSensor> run) {
+        this.listenersToChange.remove(run);
     }
 
     public Vec3 getTargetPosition() {

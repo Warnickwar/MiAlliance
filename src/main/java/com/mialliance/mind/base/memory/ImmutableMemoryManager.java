@@ -57,14 +57,11 @@ public class ImmutableMemoryManager {
         return (MemoryValue<T>) memories.get(type);
     }
 
-    // This is stupid-Optimize later.
-    // - Warnickwar
     @SuppressWarnings("unchecked")
     public <T> boolean compareMemory(@NotNull MemoryModuleType<T> type, @Nullable T expectedValue) {
         MemoryValue<T> memoryVal = (MemoryValue<T>) memories.get(type);
-        if (memoryVal == null && expectedValue == null) {
-            return true;
-        } else if (memoryVal == null) return false;
+        if (memoryVal == expectedValue) return true;
+        if (memoryVal == null) return false;
         return memoryVal.getValue().equals(expectedValue);
     }
 

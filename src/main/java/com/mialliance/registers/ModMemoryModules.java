@@ -3,7 +3,6 @@ package com.mialliance.registers;
 import com.mialliance.MiAlliance;
 import com.mialliance.colonies.Colony;
 import com.mialliance.communication.Communication;
-import com.mialliance.utils.ExtraCodecs;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -115,7 +114,7 @@ public class ModMemoryModules {
      *     { {@code Serializable}, {@code Officer} }
      * </p>
      */
-    public static final MemoryModuleType<List<Integer>> SUBORDINATES = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "subordinates"), ExtraCodecs.mutableListCodec(Codec.INT));
+    public static final MemoryModuleType<List<Integer>> SUBORDINATES = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "subordinates"), Codec.list(Codec.INT));
 
     // COOLDOWN MODULES
 

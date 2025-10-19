@@ -2,7 +2,12 @@ package com.mialliance.client.renderer.debug;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Transformation;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.debug.DebugRenderer;
 import net.minecraft.core.BlockPos;
@@ -68,26 +73,29 @@ public class MindEntityDebugRenderer implements DebugRenderer.SimpleDebugRendere
     }
 
     private void renderMindInfo(MindInfo info) {
+        boolean isSelected = isEntitySelected(info);
         int offset = 0;
-        renderTextOverMob(info.pos, offset++, info.toString(), -1, 0.03F);
-        // Render only 5 Actions max in the Stack
-        //  Start backwards to properly render the top Action
-        for (int i = 4; i >= 0; i--) {
-            String val = "";
-            try {
-                if (i == 0) {
-                    val = info.getCurrentAction();
-                } else {
-                    val = info.actionStack.get(i);
+        renderTextOverMob(info.pos, offset++, info.toString(), -1, 0.03F, false);
+        if (isSelected) {
+            // Render only 5 Actions max in the Stack
+            //  Start backwards to properly render the top Action
+            for (int i = 4; i >= 0; i--) {
+                String val = i + ": ";
+                try {
+                    if (i == 0) {
+                        val += info.getCurrentAction();
+                    } else {
+                        val += info.actionStack.get(i);
+                    }
+                } catch (Exception ignored) {
+                    val += "{No Action}";
                 }
-            } catch (Exception ignored) {
-                val = "{No Action}";
-            }
 
-            renderTextOverMob(info.pos, offset++, val, i==0?ORANGE:WHITE, ACTION_TEXT_SCALE);
+                renderTextOverMob(info.pos, offset++, val, i==0?ORANGE:WHITE, ACTION_TEXT_SCALE, true);
+            }
         }
         boolean hasGoal = !info.currentGoal.isEmpty();
-        renderTextOverMob(info.pos, offset, hasGoal?info.currentGoal:"{No Goal}", hasGoal?GREEN:RED, GOAL_TEXT_SCALE);
+        renderTextOverMob(info.pos, offset, hasGoal?info.currentGoal:"{No Goal}", hasGoal?GREEN:RED, GOAL_TEXT_SCALE, false);
     }
 
     @Override
@@ -105,7 +113,7 @@ public class MindEntityDebugRenderer implements DebugRenderer.SimpleDebugRendere
     }
 
     private boolean isEntitySelected(MindInfo info) {
-        return this.lastLookedAtUuid == info.uuid;
+        return this.lastLookedAtUuid != null && this.lastLookedAtUuid.equals(info.uuid);
     }
 
     private boolean isPlayerCloseEnough(MindInfo info) {
@@ -121,9 +129,44 @@ public class MindEntityDebugRenderer implements DebugRenderer.SimpleDebugRendere
         });
     }
 
-    private void renderTextOverMob(Position position, int offset, String text, int color, float scale) {
-        double posOff = ((double) text.length() / 2.0D)*0.05D;
-        DebugRenderer.renderFloatingText(text, position.x(), position.y()+ 2.4D + (double)offset*0.25D, position.z(), color, scale, false, 0.5F, true);
+    private void renderTextOverMob(Position position, int offset, String text, int color, float scale, boolean useBackground) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Camera camera = minecraft.gameRenderer.getMainCamera();
+        if (camera.isInitialized()) {
+            Font font = minecraft.font;
+            double d0 = camera.getPosition().x;
+            double d1 = camera.getPosition().y;
+            double d2 = camera.getPosition().z;
+            PoseStack posestack = RenderSystem.getModelViewStack();
+            posestack.pushPose();
+            posestack.translate((double)((float)(position.x() - d0)), (double)((float)((position.y()+ 2.4D + (double)offset*0.25D) - d1) + 0.07F), (double)((float)(position.z() - d2)));
+            posestack.mulPoseMatrix(new Matrix4f(camera.rotation()));
+            posestack.scale(scale, -scale, scale);
+            RenderSystem.enableTexture();
+            RenderSystem.disableDepthTest();
+
+            RenderSystem.depthMask(true);
+            posestack.scale(-1.0F, 1.0F, 1.0F);
+            RenderSystem.applyModelViewMatrix();
+            float f = (float)(-font.width(text)) / 2.0F;
+            f -= 0.5F / scale;
+            MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+            //font.drawInBatch(text, f, 0.0F, 553648127, false, Transformation.identity().getMatrix(), multibuffersource$buffersource, true, 0, 15728880);
+            int resultBackgroundOpacity;
+            if (useBackground) {
+                float backgroundOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
+                resultBackgroundOpacity = (int)(backgroundOpacity * 255.0F) << 24;
+            } else {
+                resultBackgroundOpacity = 0;
+            }
+            font.drawInBatch(text, f, 0.0F, color, false, Transformation.identity().getMatrix(), multibuffersource$buffersource, true, resultBackgroundOpacity, 15728880);
+            multibuffersource$buffersource.endBatch();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.enableDepthTest();
+            posestack.popPose();
+            RenderSystem.applyModelViewMatrix();
+        }
+        //DebugRenderer.renderFloatingText(text, position.x(), position.y()+ 2.4D + (double)offset*0.25D, position.z(), color, scale, false, 0.5F, true);
     }
 
     public static class MindInfo {

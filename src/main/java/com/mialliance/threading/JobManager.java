@@ -21,7 +21,7 @@ public final class JobManager {
     /**
      * Used when starting the Server, or joining a Server if any client jobs are needed.
      */
-    static void open() {
+    public static void open() {
         if (threadPool == null) {
             threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         }
@@ -30,7 +30,7 @@ public final class JobManager {
     /**
      * Used when shutting down the Server, or disconnecting from the Server if any client jobs are needed.
      */
-    static void close() {
+    public static void close() {
         if (threadPool != null) {
             threadPool.shutdownNow();
             threadPool = null;

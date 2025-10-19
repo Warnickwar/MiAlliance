@@ -7,22 +7,15 @@ import com.mialliance.mind.base.goal.MindGoal;
 import com.mialliance.mind.base.sensor.MindSensor;
 import com.mialliance.mind.implementation.agent.EntityAgent;
 import com.mialliance.network.packets.MindEntityS2CPacket;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
 
 public abstract class TamableMindComponentEntity extends TamableComponentEntity implements EntityMindAgentHolder {
 
-    public static final EntityDataAccessor<Optional<Component>> DATA_CURRENT_ACTION = SynchedEntityData.defineId(TamableMindComponentEntity.class, EntityDataSerializers.OPTIONAL_COMPONENT);
-    public static final EntityDataAccessor<Optional<Component>> DATA_CURRENT_GOAL = SynchedEntityData.defineId(TamableMindComponentEntity.class, EntityDataSerializers.OPTIONAL_COMPONENT);
     private final EntityAgent<TamableMindComponentEntity> agent;
 
     protected TamableMindComponentEntity(EntityType<? extends PathfinderMob> p_21683_, Level p_21684_) {
@@ -63,6 +56,26 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
             }
 
             @Override
+            protected void onPlanningTick() {
+                temp.agentPlanningTick();
+            }
+
+            @Override
+            protected void onPlanRunTick() {
+                temp.agentPlanRunTick();
+            }
+
+            @Override
+            protected void onPlanningEndTick() {
+                temp.agentPlanningEndTick();
+            }
+
+            @Override
+            protected void onPlanRunEndTick() {
+                temp.agentPlanRunEndTick();
+            }
+
+            @Override
             protected void onPostTick() {
                 temp.agentPostTick();
             }
@@ -74,13 +87,6 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
         };
     }
 
-    @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_CURRENT_ACTION, Optional.empty());
-        this.entityData.define(DATA_CURRENT_GOAL, Optional.empty());
-    }
-
     protected abstract void setupSensors(HashMap<String, MindSensor> sensors);
 
     protected abstract void setupBeliefs(HashMap<String, MindBelief> beliefs, HashMap<String, MindSensor> sensors);
@@ -90,6 +96,14 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
     protected abstract void setupGoals(HashSet<MindGoal> goals, HashMap<String, MindBelief> beliefs);
 
     protected void agentPreTick() {}
+
+    protected void agentPlanningTick() {}
+
+    protected void agentPlanRunTick() {}
+
+    protected void agentPlanningEndTick() {}
+
+    protected void agentPlanRunEndTick() {}
 
     protected void agentPostTick() {}
 

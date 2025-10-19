@@ -1,9 +1,9 @@
 package com.mialliance.mind.base.memory;
 
+import com.google.common.collect.ImmutableList;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,23 +33,17 @@ public class AddToListTemplateValue<T> extends TemplateValue<List<T>> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void applyToMemories(MemoryManager manager) {
         List<T> list = manager.getMemory(type);
-        boolean shouldInjectNew = false;
-        if (list == null) {
-            // Make a new List
-            shouldInjectNew = true;
-            list = new LinkedList<>();
-        }
-        if (hasSpecialIndex() && isInRange(list)) {
-            list.add(index, value);
-        } else if (!list.contains(value)) {
-            // Avoid putting a duplicate instance of the same object in the List
-            list.add(value);
-        }
-        if (shouldInjectNew) {
-            manager.setMemory(type, list, expiryTimeIfNew);
+        List<T> res;
+        if (list != null) {
+            res = (List<T>) ImmutableList.builder().addAll(list).add(value).build();
+            manager.setMemory(type, res);
+        } else {
+            res = ImmutableList.of(value);
+            manager.setMemory(type, res, expiryTimeIfNew);
         }
     }
 

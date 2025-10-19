@@ -73,8 +73,6 @@ public class WanderStrategy implements IStrategy {
     protected static class DesiredPos {
         double x, y, z;
 
-        DesiredPos() { this(0,0,0); }
-
         DesiredPos(double x, double y, double z) {
             this.x = x;
             this.y = y;

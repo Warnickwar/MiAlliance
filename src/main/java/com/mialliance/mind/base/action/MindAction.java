@@ -5,14 +5,17 @@ import com.mialliance.mind.base.strategy.IStrategy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.function.Supplier;
 
 public final class MindAction {
 
     private final String name;
-    private float cost = 0.0F;
+    private Supplier<Float> cost = () -> 0.0F;
 
     private final HashSet<MindBelief> preconditions;
     private final HashSet<MindBelief> effects;
+
+    private boolean forceEnd;
 
     private IStrategy strategy;
 
@@ -20,6 +23,7 @@ public final class MindAction {
         this.name = name;
         this.preconditions = new HashSet<>();
         this.effects = new HashSet<>();
+        this.forceEnd = false;
     }
 
     public String getName() {
@@ -27,25 +31,24 @@ public final class MindAction {
     }
 
     public float getCost() {
-        return cost;
+        return cost.get();
     }
 
     public boolean isComplete() {
-        return this.strategy.isComplete();
+        return forceEnd || this.strategy.isComplete();
     }
 
     public void start() {
+        forceEnd = false;
         this.strategy.start();
     }
 
     public void tick() {
         if (this.strategy.canPerform()) {
             this.strategy.tick();
+        } else {
+            forceEnd = true;
         }
-
-        if (!strategy.isComplete()) return;
-
-        effects.forEach(MindBelief::evaluate);
     }
 
     public void stop(boolean successful) {
@@ -68,7 +71,12 @@ public final class MindAction {
         }
 
         public Builder withCost(float cost) {
-            action.cost = cost;
+            action.cost = () -> cost;
+            return this;
+        }
+
+        public Builder withCost(@NotNull Supplier<Float> costSupplier) {
+            action.cost = costSupplier;
             return this;
         }
 

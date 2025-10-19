@@ -8,6 +8,7 @@ import com.mialliance.mind.base.plan.ActionPlan;
 import com.mialliance.mind.base.plan.BasicPlanner;
 import com.mialliance.mind.base.plan.IPlanner;
 import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.threading.JobManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public abstract class MindAgent<T> {
@@ -36,6 +39,9 @@ public abstract class MindAgent<T> {
     protected final HashMap<String, MindGoal> goals;
 
     protected final IPlanner planner;
+
+    @Nullable
+    private Future<ActionPlan> planFuture;
 
     public MindAgent() {
         this.beliefs = new HashMap<>();
@@ -68,11 +74,16 @@ public abstract class MindAgent<T> {
 
     protected void onPreTick() {}
 
+    protected void onPlanningTick() {}
+
+    protected void onPlanRunTick() {}
+
     public final void tick() {
         onPreTick();
         // Tick all sensors to work properly
         sensors.values().forEach(MindSensor::tick);
         if (currentAction == null) {
+            onPlanningTick();
             calculatePlan();
             if (plan != null && !plan.getActions().isEmpty()) {
 
@@ -85,13 +96,15 @@ public abstract class MindAgent<T> {
                     this.onPlanFinish();
                 }
             }
+            onPlanningEndTick();
         }
 
         if (plan != null && currentAction != null) {
+            onPlanRunTick();
             currentAction.tick();
 
             if (currentAction.isComplete()) {
-                currentAction.stop(false);
+                currentAction.stop(true);
                 currentAction = null;
 
                 if (plan.getActions().isEmpty()) {
@@ -100,26 +113,42 @@ public abstract class MindAgent<T> {
                     this.onPlanFinish();
                 }
             }
+            onPlanRunEndTick();
         }
         onPostTick();
     }
+
+    protected void onPlanningEndTick() {}
+
+    protected void onPlanRunEndTick() {}
 
     protected void onPostTick() {}
 
 
     final void calculatePlan() {
-        float priorityLevel = currentGoal == null ? 0 :
-            currentGoal.getPriority();
+        if (isPlanning()) {
+            assert planFuture != null;
+            if (planFuture.isDone()) {
+                try {
+                    plan = planFuture.get();
+                } catch (ExecutionException | InterruptedException ignored) {
+                    // Failed Plan, ignore and continue. Remove PlanFuture when done.
+                }
+            }
+            planFuture = null;
+        } else {
+            float priorityLevel = currentGoal == null ? 0 :
+                currentGoal.getPriority();
 
-        HashSet<MindGoal> goalsToEvaluate = new HashSet<>(goals.values());
+            HashSet<MindGoal> goalsToEvaluate;
 
-        if (currentGoal == null) {
-            goalsToEvaluate = goals.values().stream().filter(g -> g.getPriority() > priorityLevel).collect(Collectors.toCollection(HashSet::new));
-        }
+            if (currentGoal == null) {
+                goalsToEvaluate = goals.values().stream().filter(g -> g.getPriority() > priorityLevel).collect(Collectors.toCollection(HashSet::new));
+            } else {
+                goalsToEvaluate = new HashSet<>(goals.values());
+            }
 
-        ActionPlan plan = planner.plan(this, goalsToEvaluate, lastGoal);
-        if (plan != null) {
-            this.plan = plan;
+            planFuture = JobManager.submitJob(() -> planner.plan(this, goalsToEvaluate, lastGoal));
         }
     }
 
@@ -191,6 +220,10 @@ public abstract class MindAgent<T> {
     @Nullable
     public ActionPlan getCurrentPlan() {
         return this.plan;
+    }
+
+    public boolean isPlanning() {
+        return this.planFuture != null;
     }
 
     @NotNull
