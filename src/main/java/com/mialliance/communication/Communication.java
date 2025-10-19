@@ -1,7 +1,7 @@
 package com.mialliance.communication;
 
-import com.mialliance.mind.base.memories.MemoryManager;
-import com.mialliance.mind.base.memories.TemplateValue;
+import com.mialliance.mind.base.memory.MemoryManager;
+import com.mialliance.mind.base.memory.TemplateValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;

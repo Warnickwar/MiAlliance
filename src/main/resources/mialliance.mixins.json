@@ -9,6 +9,8 @@
   "server": [
   ],
   "client": [
+    "DebugRendererMixin",
+    "LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

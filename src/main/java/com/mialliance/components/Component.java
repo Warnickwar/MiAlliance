@@ -17,7 +17,7 @@ public abstract class Component<T extends ComponentObject> {
     private boolean isDirty;
 
     @Nullable
-    ComponentManager<T> manager = null;
+    ComponentManager manager = null;
 
     public Component() {
         this.isDirty = false;
@@ -62,7 +62,7 @@ public abstract class Component<T extends ComponentObject> {
      * @throws IllegalStateException If the Component has not been assigned a Manager yet.
      * @implNote Do not use this function in the Component's Constructor.
      */
-    public final ComponentManager<T> getManager() {
+    public final ComponentManager getManager() {
         if (this.manager == null) {
             throw new IllegalStateException("Cannot have a component without a Manager!");
         } else {

@@ -1,5 +1,7 @@
 package com.mialliance;
 
+import com.mialliance.network.ModNetwork;
+import com.mialliance.registers.ModEntities;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,6 +28,8 @@ public class MiAlliance {
         // Ew, Forge
         // - Warnickwar
         MinecraftForge.EVENT_BUS.register(this);
+        ModEntities.register(eventBus);
+        ModNetwork.load();
     }
 
 }

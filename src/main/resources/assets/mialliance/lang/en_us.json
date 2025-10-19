@@ -1,0 +1,7 @@
+{
+  "key.mialliance.debug_toggle" : "Toggle Debug Mode",
+
+  "key.categories.mialliance.debug" : "[Mi Alliance] Debug",
+
+  "debug.mialliance.debug_toggle" : "%s §fMi Alliance debug mode!"
+}

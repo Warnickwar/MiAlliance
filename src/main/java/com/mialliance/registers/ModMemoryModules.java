@@ -3,8 +3,6 @@ package com.mialliance.registers;
 import com.mialliance.MiAlliance;
 import com.mialliance.colonies.Colony;
 import com.mialliance.communication.Communication;
-import com.mialliance.mind.implementations.communication.CommunicationPriority;
-import com.mialliance.mind.implementations.memories.ColonyReference;
 import com.mialliance.utils.ExtraCodecs;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
@@ -93,7 +91,7 @@ public class ModMemoryModules {
      *     { {@code Serializable} }
      * </p>
      */
-    public static final MemoryModuleType<CommunicationPriority> CURRENT_COMMUNICATION_PRIORITY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "communication_priority"), CommunicationPriority.CODEC);
+    //public static final MemoryModuleType<CommunicationPriority> CURRENT_COMMUNICATION_PRIORITY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "communication_priority"), CommunicationPriority.CODEC);
 
     /**
      * A Memory which holds the UUID and BlockPos of the affiliated {@link Colony Colony}.
@@ -101,7 +99,7 @@ public class ModMemoryModules {
      *     { {@code Serializable} }
      * </p>
      */
-    public static final MemoryModuleType<ColonyReference> COLONY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "colony"), ColonyReference.CODEC);
+    //public static final MemoryModuleType<ColonyReference> COLONY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "colony"), ColonyReference.CODEC);
 
     /**
      * A Memory which holds the ID of the {@code Officer} of the Mi.

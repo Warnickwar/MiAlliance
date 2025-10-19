@@ -17,23 +17,23 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class ComponentManager<O extends ComponentObject> {
+public class ComponentManager {
 
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String COMPONENTS_KEY = "components";
 
-    O owner;
-    private final HashMap<ComponentType<?, O>, ComponentWrapper<?, O>> components;
-    private final List<ComponentType<?, O>> permanentTypes;
-    private final List<ComponentType<?, O>> removedTypes;
-    private final HashMap<ComponentType<?, O>, StateToggles> toggledTypes;
+    ComponentObject owner;
+    private final HashMap<ComponentType<?, ComponentObject>, ComponentWrapper<?, ComponentObject>> components;
+    private final List<ComponentType<?, ComponentObject>> permanentTypes;
+    private final List<ComponentType<?, ComponentObject>> removedTypes;
+    private final HashMap<ComponentType<?, ComponentObject>, StateToggles> toggledTypes;
 
     private final HashMap<Class<?>, List<EventListener<?>>> events;
 
     private boolean hasStarted;
     private final boolean shouldNetworkSynchronize;
 
-    public ComponentManager(O owner, boolean shouldNetworkSynchronize) {
+    public ComponentManager(ComponentObject owner, boolean shouldNetworkSynchronize) {
         this.owner = owner;
         this.components = new HashMap<>();
         this.permanentTypes = new ArrayList<>();
@@ -47,42 +47,42 @@ public class ComponentManager<O extends ComponentObject> {
         this.shouldNetworkSynchronize = shouldNetworkSynchronize;
     }
 
-    public ComponentManager(O owner) {
+    public ComponentManager(ComponentObject owner) {
         // By Default, we should enable functionality to synchronize across networks.
         //  Disable to conserve memory and processing power.
         //  Disabling means that some Components may not synchronize properly!
         this(owner, true);
     }
 
-    public O getOwner() {
+    public ComponentObject getOwner() {
         return this.owner;
     }
 
     // <--- ACCESSING --->
 
-    public void addComponent(ComponentType<?, O> type, Component.LoadPriority priority) {
+    public void addComponent(ComponentType<?, ComponentObject> type, Component.LoadPriority priority) {
         this.add(type, priority, true);
     }
 
-    public void addComponent(ComponentType<?, O> type) {
+    public void addComponent(ComponentType<?, ComponentObject> type) {
         this.addComponent(type, Component.LoadPriority.NORMAL);
     }
 
-    public void addPermanentComponent(ComponentType<?, O> type, Component.LoadPriority priority) {
+    public void addPermanentComponent(ComponentType<?, ComponentObject> type, Component.LoadPriority priority) {
         if (this.add(type, priority, true)) {
             this.permanentTypes.add(type);
         }
     }
 
-    public void addPermanentComponent(ComponentType<?, O> type) {
+    public void addPermanentComponent(ComponentType<?, ComponentObject> type) {
         this.addPermanentComponent(type, Component.LoadPriority.NORMAL);
     }
 
-    public boolean removeComponent(ComponentType<?, O> type) {
+    public boolean removeComponent(ComponentType<?, ComponentObject> type) {
         if (this.isComponentPermanent(type) || !this.hasComponent(type)) {
             return false;
         } else {
-            ComponentWrapper<?, O> wrap = this.components.remove(type);
+            ComponentWrapper<?, ComponentObject> wrap = this.components.remove(type);
             assert wrap != null;
             // Remove Events that have been registered
             Set<Pair<Class<ComponentEvent>, Consumer<ComponentEvent>>> listeners = wrap.component.registerEvents();
@@ -97,24 +97,24 @@ public class ComponentManager<O extends ComponentObject> {
         }
     }
 
-    public boolean isComponentPermanent(ComponentType<?, O> type) {
+    public boolean isComponentPermanent(ComponentType<?, ComponentObject> type) {
         return this.permanentTypes.contains(type);
     }
 
-    public boolean hasComponent(ComponentType<?, O> type) {
+    public boolean hasComponent(ComponentType<?, ComponentObject> type) {
         return this.components.containsKey(type);
     }
 
-    public void enableComponent(ComponentType<?, O> type) {
-        ComponentWrapper<?, O> wrap = this.components.get(type);
+    public void enableComponent(ComponentType<?, ComponentObject> type) {
+        ComponentWrapper<?, ComponentObject> wrap = this.components.get(type);
         if (wrap != null && !wrap.isEnabled) {
             this.toggledTypes.put(type, StateToggles.ENABLE);
             wrap.enable();
         }
     }
 
-    public void disableComponent(ComponentType<?, O> type) {
-        ComponentWrapper<?, O> wrap = this.components.get(type);
+    public void disableComponent(ComponentType<?, ComponentObject> type) {
+        ComponentWrapper<?, ComponentObject> wrap = this.components.get(type);
         if (wrap != null && wrap.isEnabled) {
             this.toggledTypes.put(type, StateToggles.DISABLE);
             wrap.disable();
@@ -201,7 +201,7 @@ public class ComponentManager<O extends ComponentObject> {
         // Populate all valid Component Types
         comps.forEach(tag -> {
             if (!(tag instanceof CompoundTag compound)) return;
-            ComponentType<Component<O>, O> type = ComponentType.getValue(ResourceLocation.parse(compound.getString(ComponentWrapper.TYPE_KEY)));
+            ComponentType<Component<ComponentObject>, ComponentObject> type = ComponentType.getValue(ResourceLocation.parse(compound.getString(ComponentWrapper.TYPE_KEY)));
 
             // Discard removed Component Type
             if (type == null) return;
@@ -213,8 +213,8 @@ public class ComponentManager<O extends ComponentObject> {
             //  Used so that there aren't duplicate Permanent components
             if (!this.hasComponent(type)) {
                 Component.LoadPriority priority = Component.LoadPriority.values()[compound.getInt(ComponentWrapper.LOAD_PRIORITY_KEY)];
-                Component<O> comp = type.unsafeBuild();
-                ComponentWrapper<Component<O>, O> wrap = new ComponentWrapper<>(type, comp, priority);
+                Component<ComponentObject> comp = type.unsafeBuild();
+                ComponentWrapper<Component<ComponentObject>, ComponentObject> wrap = new ComponentWrapper<>(type, comp, priority);
 
                 // Force Validation-we already checked this, and it should not change.
                 //  If it did change, then confer with Thoro's 11th edition Black Magic.
@@ -226,7 +226,7 @@ public class ComponentManager<O extends ComponentObject> {
                 wrap.load(compound);
                 components.put(type, wrap);
             } else {
-                ComponentWrapper<?, O> wrap = this.components.get(type);
+                ComponentWrapper<?, ComponentObject> wrap = this.components.get(type);
                 wrap.component.setDirty(true);
                 // Don't put into Hashmap, already present by now; Simply load and continue.
                 wrap.load(compound);
@@ -235,7 +235,7 @@ public class ComponentManager<O extends ComponentObject> {
         });
 
         // Initialize and load all Components
-        PriorityQueue<ComponentWrapper<?, O>> orderedComponents = new PriorityQueue<>(Comparator.comparing(wrap -> wrap.loadPriority));
+        PriorityQueue<ComponentWrapper<?, ComponentObject>> orderedComponents = new PriorityQueue<>(Comparator.comparing(wrap -> wrap.loadPriority));
         orderedComponents.addAll(components.values());
         // Enable in respect to the Load Priority
         orderedComponents.forEach(ComponentWrapper::enable);
@@ -251,7 +251,7 @@ public class ComponentManager<O extends ComponentObject> {
         //
         // No need to write if a Component is Locked-The Client shouldn't care about that
         //  Nor should the Load Priority be cared about, as, again, it is server responsibility only.
-        List<ComponentWrapper<?, O>> dirtyComps = components.values().stream().filter(ComponentWrapper::isDirty).toList();
+        List<ComponentWrapper<?, ComponentObject>> dirtyComps = components.values().stream().filter(ComponentWrapper::isDirty).toList();
         buffer.writeInt(dirtyComps.size());
         dirtyComps.forEach(wrap -> {
             wrap.component.writeToNetwork(buffer);
@@ -284,13 +284,13 @@ public class ComponentManager<O extends ComponentObject> {
         int size = buffer.readInt();
         for (int i = 0; i < size; i++) {
             ResourceLocation loc = buffer.readResourceLocation();
-            ComponentType<?, O> type = ComponentType.getValue(loc);
+            ComponentType<?, ComponentObject> type = ComponentType.getValue(loc);
             if (type == null) throw new IllegalArgumentException("Cannot find ComponentType of " + loc + "! Are the Server and Client mod versions the same?");
             // Add new Component if not already present
             if (!this.hasComponent(type)) {
                 if (!this.add(type, Component.LoadPriority.NORMAL, true)) throw new IllegalArgumentException("ComponentType of " + loc + " Cannot be applied to ComponentObject of " + this.owner.getClass() + "!");
             }
-            ComponentWrapper<?, O> wrap = this.components.get(type);
+            ComponentWrapper<?, ComponentObject> wrap = this.components.get(type);
             assert wrap != null;
             wrap.component.readFromNetwork(buffer);
         }
@@ -300,7 +300,7 @@ public class ComponentManager<O extends ComponentObject> {
         for (int i = 0; i < toggledSize; i++) {
             ResourceLocation loc = buffer.readResourceLocation();
             StateToggles toggle = StateToggles.values()[buffer.readInt()];
-            ComponentType<?, O> type = ComponentType.getValue(loc);
+            ComponentType<?, ComponentObject> type = ComponentType.getValue(loc);
             if (type == null) throw new IllegalArgumentException("Cannot find ComponentType of " + loc + "! Are the Server and Client mod versions the same?");
             switch (toggle) {
                 case ENABLE -> this.enableComponent(type);
@@ -313,7 +313,7 @@ public class ComponentManager<O extends ComponentObject> {
         int removedSize = buffer.readInt();
         for (int i = 0; i < removedSize; i++) {
             ResourceLocation loc = buffer.readResourceLocation();
-            ComponentType<?, O> type = ComponentType.getValue(loc);
+            ComponentType<?, ComponentObject> type = ComponentType.getValue(loc);
             if (type == null) throw new IllegalArgumentException("Cannot find ComponentType of " + loc + "! Are the Server and Client mod versions the same?");
             // Components should never be permanent on the Client Side
             if (this.hasComponent(type)) this.removeComponent(type);
@@ -322,11 +322,11 @@ public class ComponentManager<O extends ComponentObject> {
 
     // <--- EXTRA UTILITIES --->
 
-    private <C extends Component<O>> boolean add(@NotNull ComponentType<C, O> type, @NotNull Component.LoadPriority priority, boolean autoEnable) {
+    private <C extends Component<ComponentObject>> boolean add(@NotNull ComponentType<C, ComponentObject> type, @NotNull Component.LoadPriority priority, boolean autoEnable) {
         if (!type.fulfillsDependencies(this.owner)) return false;
         C comp = type.safeBuild(this.owner);
         if (comp == null) return false;
-        ComponentWrapper<C, O> wrap = new ComponentWrapper<>(type, comp, priority);
+        ComponentWrapper<C, ComponentObject> wrap = new ComponentWrapper<>(type, comp, priority);
         this.components.put(type, wrap);
         // Assign Manager to this object so that the Component is aware of others
         wrap.component.manager = this;
@@ -349,7 +349,7 @@ public class ComponentManager<O extends ComponentObject> {
         return true;
     }
 
-    private <C extends Component<O>> void removeDependentComponents(@NotNull ComponentType<C, O> type) {
+    private <C extends Component<ComponentObject>> void removeDependentComponents(@NotNull ComponentType<C, ComponentObject> type) {
         type.getDependents().forEach(this::removeComponent);
     }
 

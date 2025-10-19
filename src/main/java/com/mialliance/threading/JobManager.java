@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class JobManager {
+public final class JobManager {
 
     // Deallocated at startup to prevent taking up unnecessary memory
     @Nullable

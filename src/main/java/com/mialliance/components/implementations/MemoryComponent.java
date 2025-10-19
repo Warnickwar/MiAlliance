@@ -2,7 +2,7 @@ package com.mialliance.components.implementations;
 
 import com.mialliance.components.Component;
 import com.mialliance.components.ComponentObject;
-import com.mialliance.mind.base.memories.MemoryManager;
+import com.mialliance.mind.base.memory.MemoryManager;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;

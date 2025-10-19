@@ -72,9 +72,10 @@ public final class ComponentType<C extends Component<O>, O extends ComponentObje
         return (ComponentType<C, O>) ModRegistries.REGISTRIES.COMPONENTS.get(location);
     }
 
-    private static <O extends ComponentObject> boolean allMatch(ComponentManager<O> manager, ComponentType<?, O>[] dependencies) {
+    @SuppressWarnings("unchecked")
+    private static <O extends ComponentObject> boolean allMatch(ComponentManager manager, ComponentType<?, O>[] dependencies) {
         for (ComponentType<?, O> type : dependencies) {
-            if (!manager.hasComponent(type)) return false;
+            if (!manager.hasComponent((ComponentType<?, ComponentObject>) type)) return false;
         }
         return true;
     }

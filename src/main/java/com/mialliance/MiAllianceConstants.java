@@ -1,8 +1,25 @@
 package com.mialliance;
 
+import com.mialliance.client.renderer.debug.ModDebugRenderers;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
+
 public class MiAllianceConstants {
 
+
+    // TODO: Later, check client settings
+    public static boolean DEBUG = false;
+
+    // Use -256 Y to avoid any collisions with 0, 0, 0 in the actual World
+    public static final Vec3 NULL_LOCATION = new Vec3(0, -256, 0);
+
     public static int FRIENDLY_OFFICER_PARTY_MAXIMUM = 8;
+
+    public static class CLIENT {
+
+        @Nullable
+        public static ModDebugRenderers DEBUG_RENDERERS = null;
+    }
 
 
 }

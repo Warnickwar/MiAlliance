@@ -47,4 +47,6 @@ public final class CommunicationManager {
         }
         return false;
     }
+
+    public static void registerListener(@NotNull CommListener listener) {}
 }
