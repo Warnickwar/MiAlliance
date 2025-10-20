@@ -9,6 +9,7 @@ import java.util.HashSet;
 
 public interface IPlanner {
     <T> ActionPlan plan(MindAgent<T> agent, HashSet<MindGoal> goals, @Nullable MindGoal recentGoal);
+
     default <T> ActionPlan plan(MindAgent<T> agent, HashSet<MindGoal> goals) { return plan(agent, goals, null); }
 
     default <T> ActionPlan plan(MindAgent<T> agent, HashSet<MindGoal> goals, @Nullable MindGoal recentGoal, ProfilerFiller profiler) {

@@ -23,7 +23,10 @@ public class BasicPlanner implements IPlanner {
 
         for (MindGoal goal : ordered) {
             Node goalNode = new Node(null, null, goal.getEffects(), 0);
-            if (findPath(goalNode, agent.getActions())) {
+            HashSet<MindAction> availableActions = agent.getActions();
+            // Add all exposed actions that are available to the Agent.
+            availableActions.addAll(agent.collectAvailableActions());
+            if (findPath(goalNode, availableActions)) {
                 if (goalNode.isLeafDead()) continue;
 
                 LinkedList<MindAction> actionStack = new LinkedList<>();

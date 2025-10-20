@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -40,12 +41,17 @@ public abstract class MindAgent<T> {
 
     protected final IPlanner planner;
 
+    private final BeliefView cachedBeliefView;
+    private final SensorView cachedSensorView;
+
     @Nullable
     private Future<ActionPlan> planFuture;
 
     public MindAgent() {
         this.beliefs = new HashMap<>();
+        this.cachedBeliefView = new BeliefView(this.beliefs);
         this.sensors = new HashMap<>();
+        this.cachedSensorView = new SensorView(this.sensors);
         this.actions = new HashMap<>();
         HashSet<MindAction> tempActions = new HashSet<>();
         this.goals = new HashMap<>();
@@ -124,7 +130,6 @@ public abstract class MindAgent<T> {
 
     protected void onPostTick() {}
 
-
     final void calculatePlan() {
         if (isPlanning()) {
             assert planFuture != null;
@@ -148,7 +153,7 @@ public abstract class MindAgent<T> {
                 goalsToEvaluate = new HashSet<>(goals.values());
             }
 
-            planFuture = JobManager.submitJob(() -> planner.plan(this, goalsToEvaluate, lastGoal));
+            planFuture = JobManager.submitJob(() -> this.planSupplier(this, goalsToEvaluate, lastGoal));
         }
     }
 
@@ -180,6 +185,15 @@ public abstract class MindAgent<T> {
 
     protected abstract void onPlanFinish();
 
+    /**
+     * An optional method which can be implemented to
+     *  allow for the agent to collect actions outside the agent's default
+     *  Action list.
+     * @return a set of Actions which are combined when planning.
+     * @see com.mialliance.mind.base.action.IActionExposer
+     */
+    public Set<MindAction> collectAvailableActions() { return Set.of(); }
+
     @Nullable
     public MindAction getCurrentAction() {
         return this.currentAction;
@@ -190,22 +204,13 @@ public abstract class MindAgent<T> {
         return this.currentGoal;
     }
 
-    public void addGoal(MindGoal goal) {
-        this.goals.put(goal.getName(), goal);
+    public void addSensor(String name, MindSensor sensor) {
+        this.sensors.put(name, sensor);
     }
 
     @Nullable
-    public MindGoal removeGoal(String name) {
-        return this.goals.remove(name);
-    }
-
-    public void addAction(MindAction action) {
-        this.actions.put(action.getName(), action);
-    }
-
-    @Nullable
-    public MindAction removeAction(String name) {
-        return this.actions.remove(name);
+    public MindSensor removeSensor(String name) {
+        return this.sensors.remove(name);
     }
 
     public void addBelief(MindBelief belief) {
@@ -216,6 +221,34 @@ public abstract class MindAgent<T> {
     public MindBelief removeBelief(String name) {
         return this.beliefs.remove(name);
     }
+
+    public void addAction(MindAction action) {
+        this.actions.put(action.getName(), action);
+        this.finishPlan();
+    }
+
+    @Nullable
+    public MindAction removeAction(String name) {
+        MindAction res = this.actions.remove(name);
+        if (res != null) this.finishPlan();
+        return res;
+    }
+
+    public void addGoal(MindGoal goal) {
+        this.goals.put(goal.getName(), goal);
+        this.finishPlan();
+    }
+
+    @Nullable
+    public MindGoal removeGoal(String name) {
+        MindGoal res = this.goals.remove(name);
+        if (res != null) this.finishPlan();
+        return res;
+    }
+
+    public BeliefView getBeliefView() { return this.cachedBeliefView; }
+
+    public SensorView getSensorView() { return this.cachedSensorView; }
 
     @Nullable
     public ActionPlan getCurrentPlan() {
@@ -229,5 +262,39 @@ public abstract class MindAgent<T> {
     @NotNull
     protected IPlanner createPlanner() {
         return new BasicPlanner();
+    }
+
+    public abstract static class View<T> {
+        protected final HashMap<String, T> backedMap;
+
+        View(HashMap<String, T> map) {
+            this.backedMap = map;
+        }
+
+        public abstract T get(String key);
+    }
+
+    public static class SensorView extends View<MindSensor> {
+
+        SensorView(HashMap<String, MindSensor> backed) {
+            super(backed);
+        }
+
+        @Override
+        public MindSensor get(String key) {
+            return this.backedMap.get(key);
+        }
+
+    }
+
+    public static class BeliefView extends View<MindBelief> {
+
+        BeliefView(HashMap<String, MindBelief> backed) {
+            super(backed);
+        }
+
+        public MindBelief get(String key) {
+            return this.backedMap.get(key);
+        }
     }
 }

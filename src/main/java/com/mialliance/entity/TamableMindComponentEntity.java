@@ -2,6 +2,7 @@ package com.mialliance.entity;
 
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.EntityMindAgentHolder;
+import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.MindBelief;
 import com.mialliance.mind.base.goal.MindGoal;
 import com.mialliance.mind.base.sensor.MindSensor;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 public abstract class TamableMindComponentEntity extends TamableComponentEntity implements EntityMindAgentHolder {
 
@@ -30,17 +32,17 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
 
             @Override
             protected void setupBeliefs(HashMap<String, MindBelief> beliefs) {
-                temp.setupBeliefs(beliefs, this.sensors);
+                temp.setupBeliefs(beliefs, this.getSensorView());
             }
 
             @Override
             protected void setupActions(HashSet<MindAction> mindActions) {
-                temp.setupActions(mindActions, this.beliefs);
+                temp.setupActions(mindActions, this.getBeliefView());
             }
 
             @Override
             protected void setupGoals(HashSet<MindGoal> goals) {
-                temp.setupGoals(goals, this.beliefs);
+                temp.setupGoals(goals, this.getBeliefView());
             }
 
             // Weird Hack, but okay.
@@ -84,16 +86,21 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
             protected void onPlanFinish() {
                 temp.onPlanFinish();
             }
+
+            @Override
+            public Set<MindAction> collectAvailableActions() {
+                return temp.collectNearbyActions();
+            }
         };
     }
 
     protected abstract void setupSensors(HashMap<String, MindSensor> sensors);
 
-    protected abstract void setupBeliefs(HashMap<String, MindBelief> beliefs, HashMap<String, MindSensor> sensors);
+    protected abstract void setupBeliefs(HashMap<String, MindBelief> beliefs, MindAgent.SensorView sensors);
 
-    protected abstract void setupActions(HashSet<MindAction> mindActions, HashMap<String, MindBelief> beliefs);
+    protected abstract void setupActions(HashSet<MindAction> mindActions, MindAgent.BeliefView beliefs);
 
-    protected abstract void setupGoals(HashSet<MindGoal> goals, HashMap<String, MindBelief> beliefs);
+    protected abstract void setupGoals(HashSet<MindGoal> goals, MindAgent.BeliefView beliefs);
 
     protected void agentPreTick() {}
 
@@ -110,6 +117,8 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
     protected void onPlanFinish() {
         this.navigation.stop();
     }
+
+    protected Set<MindAction> collectNearbyActions() { return Set.of(); }
 
     public EntityAgent<TamableMindComponentEntity> getAgent() {
         return this.agent;

@@ -1,6 +1,7 @@
 package com.mialliance.entity;
 
 import com.mialliance.mind.base.action.MindAction;
+import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.MindBelief;
 import com.mialliance.mind.base.goal.MindGoal;
 import com.mialliance.mind.base.memory.MemoryManager;
@@ -47,7 +48,7 @@ public class TestEntity extends TamableMindComponentEntity {
     @Override
     protected void setupSensors(HashMap<String, MindSensor> sensors) {
 
-        sensors.put("PigInRadiusSensor", new EntityLocationSensor(this, 15, (ent) -> {
+        sensors.put("TargetSensor", new EntityLocationSensor(this, 15, (ent) -> {
             return ent.getType() == EntityType.PIG && this.getSensing().hasLineOfSight(ent);
         }).onLocationChange((sens) -> {
             if (this.getTarget() != sens.getTarget()) {
@@ -58,8 +59,13 @@ public class TestEntity extends TamableMindComponentEntity {
             }
             }));
 
-        sensors.put("PigInMeleeSensor", new EntityLocationSensor(this, 5, (ent) -> ent.getType() == EntityType.PIG)
-            .onLocationChange((sens) -> this.getAgent().finishPlan()));
+        sensors.put("MeleeTargetSensor", new EntityLocationSensor(this, 5, (ent) -> ent.getType() == EntityType.PIG)
+            .onLocationChange((sens) -> {
+                // Update only when Target is in range, as to properly
+                if (sens.getTarget() == this.getTarget()) {
+                    this.getAgent().finishPlan();
+                }
+            }));
 
         sensors.put("WheatSensor", new BlockOfInterestSensor(this, 10, 5, (state) -> {
             return state.is(Blocks.WHEAT) && ((CropBlock) state.getBlock()).isMaxAge(state);
@@ -70,7 +76,7 @@ public class TestEntity extends TamableMindComponentEntity {
     }
 
     @Override
-    protected void setupBeliefs(HashMap<String, MindBelief> beliefs, HashMap<String, MindSensor> sensors) {
+    protected void setupBeliefs(HashMap<String, MindBelief> beliefs, MindAgent.SensorView sensors) {
         beliefs.put("Nothing", new MindBelief.Builder("Nothing")
             .withCondition(() -> false)
             .build());
@@ -83,12 +89,16 @@ public class TestEntity extends TamableMindComponentEntity {
             .withCondition(() -> false)
             .build());
 
-        beliefs.put("PigInRange", new MindBelief.Builder("PigInRange")
-            .withCondition(() -> ((EntityLocationSensor) sensors.get("PigInRadiusSensor")).isTargetInRange())
+        beliefs.put("HasTarget", new MindBelief.Builder("HasTarget")
+            .withCondition(() -> this.getTarget() != null)
             .build());
 
-        beliefs.put("PigInMelee", new MindBelief.Builder("PigInMelee")
-            .withCondition(() -> ((EntityLocationSensor) sensors.get("PigInMeleeSensor")).isTargetInRange())
+        beliefs.put("TargetNearby", new MindBelief.Builder("TargetNearby")
+            .withCondition(() -> ((EntityLocationSensor) sensors.get("TargetSensor")).isTargetInRange())
+            .build());
+
+        beliefs.put("TargetInMeleeRange", new MindBelief.Builder("TargetInMeleeRange")
+            .withCondition(() -> ((EntityLocationSensor) sensors.get("MeleeTargetSensor")).isTargetInRange())
             .build());
 
         beliefs.put("WheatNearby", new MindBelief.Builder("WheatNearby")
@@ -102,7 +112,7 @@ public class TestEntity extends TamableMindComponentEntity {
     }
 
     @Override
-    protected void setupActions(HashSet<MindAction> mindActions, HashMap<String, MindBelief> beliefs) {
+    protected void setupActions(HashSet<MindAction> mindActions, MindAgent.BeliefView beliefs) {
         mindActions.add(new MindAction.Builder("Idle")
             .withStrategy(new EntityIdleStrategy(this, 20, 7 * 20))
             .addEffect(beliefs.get("Nothing"))
@@ -116,7 +126,7 @@ public class TestEntity extends TamableMindComponentEntity {
         mindActions.add(new MindAction.Builder("AttackPig_Melee")
             .withStrategy(new MeleeAttackEntityStrategy(this, 0.7D, false))
             .withCost(1.0F)
-            .addPrecondition(beliefs.get("PigInRange"))
+            .addPrecondition(beliefs.get("TargetNearby"))
             .addEffect(beliefs.get("Attacking"))
             .build());
 
@@ -128,7 +138,7 @@ public class TestEntity extends TamableMindComponentEntity {
     }
 
     @Override
-    protected void setupGoals(HashSet<MindGoal> goals, HashMap<String, MindBelief> beliefs) {
+    protected void setupGoals(HashSet<MindGoal> goals, MindAgent.BeliefView beliefs) {
 
         goals.add(new MindGoal.Builder("mialliance:stand_idle")
             .withPriority(1F)
