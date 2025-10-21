@@ -19,11 +19,9 @@ import net.minecraft.world.level.block.state.BlockState;
 public class TestEntityRenderer extends EntityRenderer<TestEntity> {
 
     private static final ResourceLocation NULL = ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "");
-    private final EntityRendererProvider.Context ctx;
 
     public TestEntityRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
-        this.ctx = ctx;
     }
 
     @Override
@@ -33,8 +31,6 @@ public class TestEntityRenderer extends EntityRenderer<TestEntity> {
         BlockState res = ent.isDeadOrDying() ? Blocks.REDSTONE_BLOCK.defaultBlockState() : Blocks.GOLD_BLOCK.defaultBlockState();
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(res, poseStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
-//        renderText(ent, ent.getEntityData().get(TamableMindComponentEntity.DATA_CURRENT_ACTION).orElse(Component.literal("No Action")), poseStack, buffer, packedLight, 0.75F);
-//        renderText(ent, Component.literal("Goal : " + ent.getEntityData().get(TamableMindComponentEntity.DATA_CURRENT_GOAL).orElse(Component.literal("No Goal")).getString()), poseStack, buffer, packedLight, 1.25F);
         super.render(ent, yaw, pTick, poseStack, buffer, packedLight);
     }
 

@@ -3,6 +3,7 @@ package com.mialliance.entity;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.EntityMindAgentHolder;
 import com.mialliance.mind.base.agent.MindAgent;
+import com.mialliance.mind.base.belief.BeliefFactory;
 import com.mialliance.mind.base.belief.MindBelief;
 import com.mialliance.mind.base.goal.MindGoal;
 import com.mialliance.mind.base.sensor.MindSensor;
@@ -32,7 +33,7 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
 
             @Override
             protected void setupBeliefs(HashMap<String, MindBelief> beliefs) {
-                temp.setupBeliefs(beliefs, this.getSensorView());
+                temp.setupBeliefs(new BeliefFactory(this, beliefs), this.getSensorView());
             }
 
             @Override
@@ -96,7 +97,7 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
 
     protected abstract void setupSensors(HashMap<String, MindSensor> sensors);
 
-    protected abstract void setupBeliefs(HashMap<String, MindBelief> beliefs, MindAgent.SensorView sensors);
+    protected abstract void setupBeliefs(BeliefFactory beliefs, MindAgent.SensorView sensors);
 
     protected abstract void setupActions(HashSet<MindAction> mindActions, MindAgent.BeliefView beliefs);
 

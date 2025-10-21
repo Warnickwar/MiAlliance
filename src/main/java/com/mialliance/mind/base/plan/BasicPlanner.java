@@ -14,31 +14,34 @@ public class BasicPlanner implements IPlanner {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    // TODO: Make Planner evaluate multiple ActionPlans and choose the least costly plan.
     @Override
     public <T> ActionPlan plan(MindAgent<T> agent, HashSet<MindGoal> goals, @Nullable MindGoal recentGoal) {
         List<MindGoal> ordered = new ArrayList<>(goals.stream()
-            .filter(goal -> goal.getEffects().stream().anyMatch(belief -> !belief.evaluate()))
+            .filter(goal -> !goal.getEffects().isEmpty() && goal.getEffects().stream().anyMatch(belief -> !belief.evaluate()))
             .toList());
         ordered.sort((goal1, goal2) -> compareGoals(goal1, goal2, recentGoal));
 
-        for (MindGoal goal : ordered) {
-            Node goalNode = new Node(null, null, goal.getEffects(), 0);
-            HashSet<MindAction> availableActions = agent.getActions();
-            // Add all exposed actions that are available to the Agent.
-            availableActions.addAll(agent.collectAvailableActions());
-            if (findPath(goalNode, availableActions)) {
-                if (goalNode.isLeafDead()) continue;
+        try {
+            for (MindGoal goal : ordered) {
+                Node goalNode = new Node(null, null, goal.getEffects(), 0);
+                HashSet<MindAction> availableActions = agent.getActions();
+                // Add all exposed actions that are available to the Agent.
+                availableActions.addAll(agent.collectAvailableActions());
+                if (findPath(goalNode, availableActions)) {
+                    if (goalNode.isLeafDead()) continue;
 
-                LinkedList<MindAction> actionStack = new LinkedList<>();
-                while (!goalNode.leaves.isEmpty()) {
-                    goalNode.leaves.sort((l1, l2) -> Float.compare(l2.cost, l1.cost));
-                    goalNode = goalNode.leaves.get(0);
-                    actionStack.add(goalNode.action);
+                    LinkedList<MindAction> actionStack = new LinkedList<>();
+                    while (!goalNode.leaves.isEmpty()) {
+                        goalNode.leaves.sort((l1, l2) -> Float.compare(l2.cost, l1.cost));
+                        goalNode = goalNode.leaves.get(0);
+                        actionStack.add(goalNode.action);
+                    }
+
+                    return new ActionPlan(goal, actionStack, goalNode.cost);
                 }
-
-                return new ActionPlan(goal, actionStack, goalNode.cost);
             }
-        }
+        } catch (Exception ignored) {}
         LOGGER.error("Could not find Plan for entity!");
         return null;
     }

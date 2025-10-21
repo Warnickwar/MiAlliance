@@ -11,6 +11,12 @@ public class WaterAvoidWanderStrategy extends WanderStrategy {
         super(source, speedModifier, checkNoAction);
     }
 
+    @Override
+    public void start() {
+        this.source.getNavigation().setCanFloat(true);
+        super.start();
+    }
+
     // TODO: Later change 0.001F to a configurable Probability
     @Override
     protected @Nullable Vec3 getPosition() {

@@ -27,6 +27,7 @@ public class ModComponents {
         public static final ComponentType<MemoryComponent, ComponentObject> MEMORY_COMPONENT = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "memories"), ComponentObject.class, MemoryComponent::new);
 
         public static final ComponentType<CooldownComponent, ComponentObject> COOLDOWN_COMPONENT = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "cooldown"), ComponentObject.class, CooldownComponent::new);
+
     }
 
     private static <O extends ComponentObject, C extends Component<O>> ComponentType<C, O> register(ResourceLocation id, Class<O> validClass, ComponentType.ComponentFactory<C, O> factory) {
@@ -36,5 +37,4 @@ public class ModComponents {
     private static <O extends ComponentObject, C extends Component<O>> ComponentType<C, O> register(ResourceLocation id, Class<O> validClass, ComponentType.ComponentFactory<C, O> factory, ComponentType<?, O>... dependencies) {
         return Registry.register(ModRegistries.REGISTRIES.COMPONENTS, id, new ComponentType<>(validClass, factory, dependencies));
     }
-
 }

@@ -1,6 +1,5 @@
 package com.mialliance.buildings;
 
-import com.mialliance.ModRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -41,12 +40,14 @@ public class BuildingType<T extends Building> {
     }
 
     public static <T extends Building> Optional<ResourceLocation> by(BuildingType<T> type) {
-        return Optional.ofNullable(ModRegistries.REGISTRIES.BUILDINGS.getKey(type));
+//        return Optional.ofNullable(ModRegistries.REGISTRIES.BUILDINGS.getKey(type));
+        return Optional.empty();
     }
 
     public static Optional<ResourceLocation> by(CompoundTag tag) {
-        BuildingType<?> type = ModRegistries.REGISTRIES.BUILDINGS.get(ResourceLocation.parse(tag.getString("Type")));
-        return Optional.ofNullable(type != null ? ModRegistries.REGISTRIES.BUILDINGS.getKey(type) : null);
+//        BuildingType<?> type = ModRegistries.REGISTRIES.BUILDINGS.get(ResourceLocation.parse(tag.getString("Type")));
+//        return Optional.ofNullable(type != null ? ModRegistries.REGISTRIES.BUILDINGS.getKey(type) : null);
+        return Optional.empty();
     }
 
     @FunctionalInterface

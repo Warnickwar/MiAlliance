@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+/**
+ * <p>
+ *
+ * </p>
+ */
 public final class BeliefFactory {
 
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -21,6 +26,14 @@ public final class BeliefFactory {
     @NotNull
     private final HashMap<String, MindBelief> beliefs;
 
+    /**
+     * <p>
+     *      Returns a new Factory which can be used to simplify the initial construction of
+     *      {@link MindBelief Beliefs} for the associated Agent.
+     * </p>
+     * @param agent The Agent which is
+     * @param beliefs
+     */
     public BeliefFactory(@NotNull MindAgent<?> agent, @NotNull HashMap<String, MindBelief> beliefs) {
         this.agent = agent;
         this.beliefs = beliefs;
@@ -60,21 +73,30 @@ public final class BeliefFactory {
             .build());
     }
 
-    boolean inRangeOf(Vec3 origin, Vec3 target, float range) { return origin.closerThan(target, range); }
+    public void addConditionalLocationBelief(@NotNull String key, Supplier<Boolean> conditional, Supplier<Vec3> location) {
+        warnDuplicate(key);
 
-    static boolean checkMemoryPresence(@NotNull ImmutableMemoryManager manager, @NotNull MemoryModuleType<?> type, boolean shouldBePresent) {
-        return manager.hasMemory(type) == shouldBePresent;
+        this.beliefs.put(key, new MindBelief.Builder(key)
+            .withCondition(conditional)
+            .withLocation(location)
+            .build());
     }
 
-    static <T> boolean memoryMeetsCondition(@NotNull ImmutableMemoryManager manager, @NotNull MemoryModuleType<T> type, @NotNull Predicate<T> condition) {
-        T val = manager.getMemory(type);
-        return val != null && condition.test(val);
-    }
+    private boolean inRangeOf(Vec3 origin, Vec3 target, float range) { return origin.closerThan(target, range); }
 
     private void warnDuplicate(@NotNull String key) {
         if (this.beliefs.containsKey(key)) {
             LOGGER.error("Belief {} already exists; Is this a duplicate registration?  | {}", key, new IllegalStateException());
         }
+    }
+
+    private static boolean checkMemoryPresence(@NotNull ImmutableMemoryManager manager, @NotNull MemoryModuleType<?> type, boolean shouldBePresent) {
+        return manager.hasMemory(type) == shouldBePresent;
+    }
+
+    private static <T> boolean memoryMeetsCondition(@NotNull ImmutableMemoryManager manager, @NotNull MemoryModuleType<T> type, @NotNull Predicate<T> condition) {
+        T val = manager.getMemory(type);
+        return val != null && condition.test(val);
     }
 
 }

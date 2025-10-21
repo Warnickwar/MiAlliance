@@ -2,18 +2,15 @@ package com.mialliance.entity;
 
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.MindAgent;
-import com.mialliance.mind.base.belief.MindBelief;
+import com.mialliance.mind.base.belief.BeliefFactory;
 import com.mialliance.mind.base.goal.MindGoal;
 import com.mialliance.mind.base.memory.MemoryManager;
 import com.mialliance.mind.base.sensor.MindSensor;
-import com.mialliance.mind.implementation.sensor.BlockOfInterestSensor;
 import com.mialliance.mind.implementation.sensor.EntityLocationSensor;
 import com.mialliance.mind.implementation.strategy.EntityIdleStrategy;
 import com.mialliance.mind.implementation.strategy.MeleeAttackEntityStrategy;
-import com.mialliance.mind.implementation.strategy.MineBlockStrategy;
 import com.mialliance.mind.implementation.strategy.WaterAvoidWanderStrategy;
 import com.mojang.serialization.DataResult;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -23,9 +20,6 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +44,8 @@ public class TestEntity extends TamableMindComponentEntity {
 
         sensors.put("TargetSensor", new EntityLocationSensor(this, 15, (ent) -> {
             return ent.getType() == EntityType.PIG && this.getSensing().hasLineOfSight(ent);
-        }).onLocationChange((sens) -> {
+        })
+            .onLocationChange((sens) -> {
             if (this.getTarget() != sens.getTarget()) {
                 if (sens.isTargetDifferent()) {
                     this.getAgent().finishPlan();
@@ -67,52 +62,23 @@ public class TestEntity extends TamableMindComponentEntity {
                 }
             }));
 
-        sensors.put("WheatSensor", new BlockOfInterestSensor(this, 10, 5, (state) -> {
-            return state.is(Blocks.WHEAT) && ((CropBlock) state.getBlock()).isMaxAge(state);
-        }).onInterestChange(sens -> {
-            if (!sens.getStateOfInterest().isAir()) {
-                this.getAgent().finishPlan();
-            }}));
     }
 
     @Override
-    protected void setupBeliefs(HashMap<String, MindBelief> beliefs, MindAgent.SensorView sensors) {
-        beliefs.put("Nothing", new MindBelief.Builder("Nothing")
-            .withCondition(() -> false)
-            .build());
+    protected void setupBeliefs(BeliefFactory factory, MindAgent.SensorView sensors) {
 
-        beliefs.put("Moving", new MindBelief.Builder("Moving")
-            .withCondition(() -> !this.navigation.isDone())
-            .build());
+        factory.addBelief("Nothing", () -> false);
+        factory.addBelief("Moving", () -> !this.navigation.isDone());
+        factory.addBelief("Attacking", () -> false);
+        factory.addBelief("HasTarget", () -> this.getTarget() != null);
+        factory.addBelief("TargetNearby", () -> ((EntityLocationSensor) sensors.get("TargetSensor")).isTargetInRange());
+        factory.addBelief("TargetInMeleeRange", () -> ((EntityLocationSensor) sensors.get("MeleeTargetSensor")).isTargetInRange());
 
-        beliefs.put("Attacking", new MindBelief.Builder("Attacking")
-            .withCondition(() -> false)
-            .build());
-
-        beliefs.put("HasTarget", new MindBelief.Builder("HasTarget")
-            .withCondition(() -> this.getTarget() != null)
-            .build());
-
-        beliefs.put("TargetNearby", new MindBelief.Builder("TargetNearby")
-            .withCondition(() -> ((EntityLocationSensor) sensors.get("TargetSensor")).isTargetInRange())
-            .build());
-
-        beliefs.put("TargetInMeleeRange", new MindBelief.Builder("TargetInMeleeRange")
-            .withCondition(() -> ((EntityLocationSensor) sensors.get("MeleeTargetSensor")).isTargetInRange())
-            .build());
-
-        beliefs.put("WheatNearby", new MindBelief.Builder("WheatNearby")
-            .withCondition(() -> ((BlockOfInterestSensor) sensors.get("WheatSensor")).hasInterest())
-            .withLocation(() -> Vec3.atCenterOf(((BlockOfInterestSensor) sensors.get("WheatSensor")).getPositionOfInterest()))
-            .build());
-
-        beliefs.put("WheatNotNearby", new MindBelief.Builder("WheatNotNearby")
-            .withCondition(() -> !beliefs.get("WheatNearby").evaluate())
-            .build());
     }
 
     @Override
     protected void setupActions(HashSet<MindAction> mindActions, MindAgent.BeliefView beliefs) {
+
         mindActions.add(new MindAction.Builder("Idle")
             .withStrategy(new EntityIdleStrategy(this, 20, 7 * 20))
             .addEffect(beliefs.get("Nothing"))
@@ -128,12 +94,6 @@ public class TestEntity extends TamableMindComponentEntity {
             .withCost(1.0F)
             .addPrecondition(beliefs.get("TargetNearby"))
             .addEffect(beliefs.get("Attacking"))
-            .build());
-
-        mindActions.add(new MindAction.Builder("HarvestWheat")
-            .withStrategy(new MineBlockStrategy(this, 0.35D, 1.25D, () -> new BlockPos(beliefs.get("WheatNearby").getLocation())))
-            .addPrecondition(beliefs.get("WheatNearby"))
-            .addEffect(beliefs.get("WheatNotNearby"))
             .build());
     }
 
@@ -153,11 +113,6 @@ public class TestEntity extends TamableMindComponentEntity {
         goals.add(new MindGoal.Builder("mialliance:attack_pig")
             .withPriority(2F)
             .addDesire(beliefs.get("Attacking"))
-            .build());
-
-        goals.add(new MindGoal.Builder("mialliance:harvest_wheat")
-            .withPriority(2F)
-            .addDesire(beliefs.get("WheatNotNearby"))
             .build());
     }
 

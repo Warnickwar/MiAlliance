@@ -60,7 +60,6 @@ public abstract class Component<T extends ComponentObject> {
      * </p>
      * @return The associated {@link ComponentManager} which this Component is attached to.
      * @throws IllegalStateException If the Component has not been assigned a Manager yet.
-     * @implNote Do not use this function in the Component's Constructor.
      */
     public final ComponentManager getManager() {
         if (this.manager == null) {

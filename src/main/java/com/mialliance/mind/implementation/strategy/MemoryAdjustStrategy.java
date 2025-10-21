@@ -1,7 +1,8 @@
-package com.mialliance.mind.base.strategy;
+package com.mialliance.mind.implementation.strategy;
 
 import com.mialliance.mind.base.memory.MemoryManager;
 import com.mialliance.mind.base.memory.TemplateValue;
+import com.mialliance.mind.base.strategy.IStrategy;
 
 import java.util.HashSet;
 

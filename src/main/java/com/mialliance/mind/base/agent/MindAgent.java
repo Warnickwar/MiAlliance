@@ -72,12 +72,6 @@ public abstract class MindAgent<T> {
         return new HashSet<>(this.actions.values());
     }
 
-    // Exposed to allow for new goals and actions to be added
-    //  While using the current agent's belief system
-    public HashMap<String, MindBelief> getBeliefs() {
-        return this.beliefs;
-    }
-
     protected void onPreTick() {}
 
     protected void onPlanningTick() {}
@@ -137,10 +131,11 @@ public abstract class MindAgent<T> {
                 try {
                     plan = planFuture.get();
                 } catch (ExecutionException | InterruptedException ignored) {
-                    // Failed Plan, ignore and continue. Remove PlanFuture when done.
+                    // Failed Plan, ignore and continue. Remove PlanFuture when done
+                    //  to try and re-request a new plan.
                 }
+                planFuture = null;
             }
-            planFuture = null;
         } else {
             float priorityLevel = currentGoal == null ? 0 :
                 currentGoal.getPriority();
@@ -272,6 +267,8 @@ public abstract class MindAgent<T> {
         }
 
         public abstract T get(String key);
+
+        public boolean has(String key) { return this.backedMap.containsKey(key); }
     }
 
     public static class SensorView extends View<MindSensor> {
@@ -296,5 +293,6 @@ public abstract class MindAgent<T> {
         public MindBelief get(String key) {
             return this.backedMap.get(key);
         }
+
     }
 }

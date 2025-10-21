@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "mialliance.refmap.json",
   "mixins": [
+    "RegistryAccessor"
   ],
   "server": [
   ],
