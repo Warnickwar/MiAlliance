@@ -1,6 +1,6 @@
 package com.mialliance.mind.implementation.strategy;
 
-import com.mialliance.mind.base.strategy.IStrategy;
+import com.mialliance.mind.base.IStrategy;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;

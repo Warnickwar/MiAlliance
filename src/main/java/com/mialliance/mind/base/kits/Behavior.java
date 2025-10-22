@@ -4,8 +4,8 @@ import com.mialliance.ModRegistries;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.MindBelief;
-import com.mialliance.mind.base.goal.MindGoal;
-import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.mind.base.MindGoal;
+import com.mialliance.mind.base.MindSensor;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,13 +1,15 @@
 package com.mialliance.mind.base.agent;
 
+import com.mialliance.mind.base.action.IContextProvider;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.belief.MindBelief;
-import com.mialliance.mind.base.goal.MindGoal;
+import com.mialliance.mind.base.MindGoal;
+import com.mialliance.mind.base.kits.PlanContext;
 import com.mialliance.mind.base.memory.MemoryManager;
 import com.mialliance.mind.base.plan.ActionPlan;
 import com.mialliance.mind.base.plan.BasicPlanner;
 import com.mialliance.mind.base.plan.IPlanner;
-import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.mind.base.MindSensor;
 import com.mialliance.threading.JobManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -16,11 +18,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("UnusedReturnValue")
 public abstract class MindAgent<T> {
 
     @Nullable
@@ -181,13 +183,21 @@ public abstract class MindAgent<T> {
     protected abstract void onPlanFinish();
 
     /**
+     * <p>
+     *     An optional method which can be implemented to
+     *     designate how an Agent collect contextual actions and goals.
+     * </p>
+     * <p>
+     *     This allows for the environment to affect how an agent should
+     * </p>
      * An optional method which can be implemented to
      *  allow for the agent to collect actions outside the agent's default
      *  Action list.
-     * @return a set of Actions which are combined when planning.
-     * @see com.mialliance.mind.base.action.IActionExposer
+     * @return a Collector of Actions which are combined when planning.
+     * @see IContextProvider
      */
-    public Set<MindAction> collectAvailableActions() { return Set.of(); }
+    @SuppressWarnings("unchecked")
+    public PlanContext<MindAgent<T>> collectContext() { return (PlanContext<MindAgent<T>>) PlanContext.NONE; }
 
     @Nullable
     public MindAction getCurrentAction() {
@@ -259,7 +269,7 @@ public abstract class MindAgent<T> {
         return new BasicPlanner();
     }
 
-    public abstract static class View<T> {
+    protected abstract static class View<T> {
         protected final HashMap<String, T> backedMap;
 
         View(HashMap<String, T> map) {

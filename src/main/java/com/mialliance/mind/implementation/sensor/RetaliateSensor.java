@@ -1,6 +1,6 @@
 package com.mialliance.mind.implementation.sensor;
 
-import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.mind.base.MindSensor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;

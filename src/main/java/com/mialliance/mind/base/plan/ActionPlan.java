@@ -1,7 +1,7 @@
 package com.mialliance.mind.base.plan;
 
 import com.mialliance.mind.base.action.MindAction;
-import com.mialliance.mind.base.goal.MindGoal;
+import com.mialliance.mind.base.MindGoal;
 
 import java.util.LinkedList;
 

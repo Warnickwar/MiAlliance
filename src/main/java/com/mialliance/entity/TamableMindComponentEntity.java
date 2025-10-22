@@ -5,8 +5,9 @@ import com.mialliance.mind.base.agent.EntityMindAgentHolder;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.BeliefFactory;
 import com.mialliance.mind.base.belief.MindBelief;
-import com.mialliance.mind.base.goal.MindGoal;
-import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.mind.base.MindGoal;
+import com.mialliance.mind.base.kits.PlanContext;
+import com.mialliance.mind.base.MindSensor;
 import com.mialliance.mind.implementation.agent.EntityAgent;
 import com.mialliance.network.packets.MindEntityS2CPacket;
 import net.minecraft.world.entity.EntityType;
@@ -15,7 +16,6 @@ import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 
 public abstract class TamableMindComponentEntity extends TamableComponentEntity implements EntityMindAgentHolder {
 
@@ -26,6 +26,7 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
         // Obtain a reference to the entity object to expose it to the Agent
         TamableMindComponentEntity temp = this;
         this.agent = new EntityAgent<>() {
+
             @Override
             protected void setupSensors(HashMap<String, MindSensor> sensors) {
                 temp.setupSensors(sensors);
@@ -89,8 +90,8 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
             }
 
             @Override
-            public Set<MindAction> collectAvailableActions() {
-                return temp.collectNearbyActions();
+            public PlanContext<MindAgent<TamableMindComponentEntity>> collectContext() {
+                return temp.collectContext();
             }
         };
     }
@@ -119,7 +120,8 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
         this.navigation.stop();
     }
 
-    protected Set<MindAction> collectNearbyActions() { return Set.of(); }
+    @SuppressWarnings("unchecked")
+    protected PlanContext<MindAgent<TamableMindComponentEntity>> collectContext() { return (PlanContext<MindAgent<TamableMindComponentEntity>>) PlanContext.NONE; }
 
     public EntityAgent<TamableMindComponentEntity> getAgent() {
         return this.agent;

@@ -2,8 +2,8 @@ package com.mialliance.mind.base.belief;
 
 import com.mialliance.MiAllianceConstants;
 import com.mialliance.mind.base.agent.MindAgent;
-import com.mialliance.mind.base.goal.MindGoal;
-import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.mind.base.MindGoal;
+import com.mialliance.mind.base.MindSensor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;

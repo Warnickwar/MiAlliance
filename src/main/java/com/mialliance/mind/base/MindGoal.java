@@ -1,4 +1,4 @@
-package com.mialliance.mind.base.goal;
+package com.mialliance.mind.base;
 
 import com.mialliance.mind.base.belief.MindBelief;
 import net.minecraft.resources.ResourceLocation;

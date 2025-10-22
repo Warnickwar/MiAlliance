@@ -6,7 +6,7 @@ import com.mialliance.entity.TamableMindComponentEntity;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.MindBelief;
-import com.mialliance.mind.base.goal.MindGoal;
+import com.mialliance.mind.base.MindGoal;
 import com.mialliance.mind.base.kits.Behavior;
 import com.mialliance.mind.implementation.agent.EntityAgent;
 import com.mialliance.mind.implementation.sensor.BlockOfInterestSensor;
@@ -52,8 +52,7 @@ public class ModBehaviors {
                 .withPriority(2F)
                 .addDesire(ag.getBeliefView().get("WheatNotNearby"))
                 .build())
-            .build()
-            );
+            .build());
 
     private static Behavior register(ResourceLocation loc, Behavior behavior) {
         Registry.register(ModRegistries.REGISTRIES.MIND_BEHAVIORS, loc, behavior);

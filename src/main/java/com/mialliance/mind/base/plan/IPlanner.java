@@ -1,7 +1,7 @@
 package com.mialliance.mind.base.plan;
 
 import com.mialliance.mind.base.agent.MindAgent;
-import com.mialliance.mind.base.goal.MindGoal;
+import com.mialliance.mind.base.MindGoal;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.Nullable;
 

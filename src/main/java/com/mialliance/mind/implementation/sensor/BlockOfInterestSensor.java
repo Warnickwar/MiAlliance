@@ -1,7 +1,7 @@
 package com.mialliance.mind.implementation.sensor;
 
 import com.mialliance.MiAllianceConstants;
-import com.mialliance.mind.base.sensor.MindSensor;
+import com.mialliance.mind.base.MindSensor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;

@@ -1,7 +1,7 @@
 package com.mialliance.mind.implementation.strategy;
 
 import com.mialliance.MiAllianceConstants;
-import com.mialliance.mind.base.strategy.IStrategy;
+import com.mialliance.mind.base.IStrategy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.phys.Vec3;

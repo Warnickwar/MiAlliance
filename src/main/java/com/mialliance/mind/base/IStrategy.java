@@ -1,4 +1,4 @@
-package com.mialliance.mind.base.strategy;
+package com.mialliance.mind.base;
 
 import net.minecraft.util.Mth;
 

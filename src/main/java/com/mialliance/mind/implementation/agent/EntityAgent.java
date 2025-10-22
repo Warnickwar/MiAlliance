@@ -1,7 +1,7 @@
 package com.mialliance.mind.implementation.agent;
 
 import com.mialliance.mind.base.agent.MindAgent;
-import com.mialliance.mind.base.goal.MindGoal;
+import com.mialliance.mind.base.MindGoal;
 import com.mialliance.mind.base.plan.ActionPlan;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;

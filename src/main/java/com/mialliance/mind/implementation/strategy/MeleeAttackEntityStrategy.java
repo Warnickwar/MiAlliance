@@ -1,12 +1,11 @@
 package com.mialliance.mind.implementation.strategy;
 
-import com.mialliance.mind.base.strategy.IStrategy;
+import com.mialliance.mind.base.IStrategy;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 
 public class MeleeAttackEntityStrategy implements IStrategy {
 
@@ -26,10 +25,6 @@ public class MeleeAttackEntityStrategy implements IStrategy {
 
     @Override
     public void start() {
-        if  (this.host.getTarget() != null) {
-            this.host.getNavigation().moveTo(this.host.getTarget(), speedModifier);
-            this.host.setAggressive(true);
-        }
         this.ticksUntilNextAttack = 0;
         this.ticksUntilPathRecalculation = 0;
     }
@@ -42,7 +37,6 @@ public class MeleeAttackEntityStrategy implements IStrategy {
             double d0 = this.host.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
             this.ticksUntilPathRecalculation = Math.max(this.ticksUntilPathRecalculation - 1, 0);
             if ((this.followNoLOS || this.host.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilPathRecalculation <= 0 && livingentity.distanceToSqr(this.host.position()) >= 1.0D || this.host.getRandom().nextFloat() < 0.05F) {
-                Vec3 pathedTarget = livingentity.position();
                 this.ticksUntilPathRecalculation = 4 + this.host.getRandom().nextInt(7);
                 if (d0 > 1024.0D) {
                     this.ticksUntilPathRecalculation += 10;

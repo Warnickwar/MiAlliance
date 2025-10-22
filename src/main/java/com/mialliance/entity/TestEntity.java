@@ -1,12 +1,15 @@
 package com.mialliance.entity;
 
+import com.mialliance.mind.base.MindGoal;
+import com.mialliance.mind.base.MindSensor;
+import com.mialliance.mind.base.action.IContextProvider;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.BeliefFactory;
-import com.mialliance.mind.base.goal.MindGoal;
+import com.mialliance.mind.base.kits.PlanContext;
 import com.mialliance.mind.base.memory.MemoryManager;
-import com.mialliance.mind.base.sensor.MindSensor;
 import com.mialliance.mind.implementation.sensor.EntityLocationSensor;
+import com.mialliance.mind.implementation.strategy.ChaseStrategy;
 import com.mialliance.mind.implementation.strategy.EntityIdleStrategy;
 import com.mialliance.mind.implementation.strategy.MeleeAttackEntityStrategy;
 import com.mialliance.mind.implementation.strategy.WaterAvoidWanderStrategy;
@@ -23,8 +26,9 @@ import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
-public class TestEntity extends TamableMindComponentEntity {
+public class TestEntity extends TamableMindComponentEntity implements IContextProvider {
 
     // TODO: Make and test a Swim action,
     //  as currently the Agent will not swim upwards and
@@ -57,6 +61,7 @@ public class TestEntity extends TamableMindComponentEntity {
         sensors.put("MeleeTargetSensor", new EntityLocationSensor(this, 5, (ent) -> ent.getType() == EntityType.PIG)
             .onLocationChange((sens) -> {
                 // Update only when Target is in range, as to properly
+                //  have the Agent reevaluate the melee range
                 if (sens.getTarget() == this.getTarget()) {
                     this.getAgent().finishPlan();
                 }
@@ -72,7 +77,7 @@ public class TestEntity extends TamableMindComponentEntity {
         factory.addBelief("Attacking", () -> false);
         factory.addBelief("HasTarget", () -> this.getTarget() != null);
         factory.addBelief("TargetNearby", () -> ((EntityLocationSensor) sensors.get("TargetSensor")).isTargetInRange());
-        factory.addBelief("TargetInMeleeRange", () -> ((EntityLocationSensor) sensors.get("MeleeTargetSensor")).isTargetInRange());
+        factory.addBelief("TargetInMeleeRange", () -> this.getTarget() != null && this.getTarget().position().distanceToSqr(this.position()) < getAttackReachSqr(this, this.getTarget()));
 
     }
 
@@ -89,10 +94,17 @@ public class TestEntity extends TamableMindComponentEntity {
             .addEffect(beliefs.get("Moving"))
             .build());
 
-        mindActions.add(new MindAction.Builder("AttackPig_Melee")
+        //noinspection DataFlowIssue
+        mindActions.add(new MindAction.Builder("Chase_Target")
+            .withStrategy(new ChaseStrategy(this, 0.7D, false, () -> getAttackReachSqr(this, this.getTarget())))
+            .addPrecondition(beliefs.get("HasTarget"))
+            .addEffect(beliefs.get("TargetInMeleeRange"))
+            .build());
+
+        mindActions.add(new MindAction.Builder("Attack_Melee")
             .withStrategy(new MeleeAttackEntityStrategy(this, 0.7D, false))
-            .withCost(1.0F)
-            .addPrecondition(beliefs.get("TargetNearby"))
+            .addPrecondition(beliefs.get("HasTarget"))
+            .addPrecondition(beliefs.get("TargetInMeleeRange"))
             .addEffect(beliefs.get("Attacking"))
             .build());
     }
@@ -110,7 +122,7 @@ public class TestEntity extends TamableMindComponentEntity {
             .addDesire(beliefs.get("Moving"))
             .build());
 
-        goals.add(new MindGoal.Builder("mialliance:attack_pig")
+        goals.add(new MindGoal.Builder("mialliance:attack_target")
             .withPriority(2F)
             .addDesire(beliefs.get("Attacking"))
             .build());
@@ -147,6 +159,27 @@ public class TestEntity extends TamableMindComponentEntity {
     }
 
     @Override
+    public <T> void injectContext(PlanContext<MindAgent<T>> context) {}
+
+    @Override
+    protected PlanContext<MindAgent<TamableMindComponentEntity>> collectContext() {
+        List<IContextProvider> entProviders = this.level.getEntities(this, this.getBoundingBox().inflate(10.0D))
+            .stream().filter(ent -> ent instanceof IContextProvider)
+            .map(filtered -> (IContextProvider) filtered)
+            .toList();
+
+        PlanContext<MindAgent<TamableMindComponentEntity>> ctx = PlanContext.create(this);
+        entProviders.forEach(prov -> {
+            PlanContext<MindAgent<TamableMindComponentEntity>> provContext = PlanContext.create(this);
+            prov.injectContext(provContext);
+            ctx.mergeThis(provContext);
+        });
+
+        // Handle Blocks and BlockEntities later
+        return ctx;
+    }
+
+    @Override
     public boolean save(CompoundTag tag) {
         DataResult<Tag> result = MemoryManager.CODEC.encodeStart(NbtOps.INSTANCE, memories);
         result.get().ifLeft(resTag -> tag.put("Memories", resTag));
@@ -160,6 +193,10 @@ public class TestEntity extends TamableMindComponentEntity {
             manager.get().ifLeft(mem -> this.memories = mem);
         }
         super.load(tag);
+    }
+
+    protected static double getAttackReachSqr(LivingEntity origin, LivingEntity target) {
+        return (double)(origin.getBbWidth() * 2.0F * origin.getBbWidth() * 2.0F + target.getBbWidth());
     }
 
     public static AttributeSupplier createDefaultAttributes() {

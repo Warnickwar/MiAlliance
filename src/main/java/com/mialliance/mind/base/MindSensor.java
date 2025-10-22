@@ -1,4 +1,4 @@
-package com.mialliance.mind.base.sensor;
+package com.mialliance.mind.base;
 
 /**
  * <p>
