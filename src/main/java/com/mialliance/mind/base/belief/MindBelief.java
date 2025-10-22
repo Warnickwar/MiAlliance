@@ -1,13 +1,14 @@
 package com.mialliance.mind.base.belief;
 
-import com.mialliance.MiAllianceConstants;
-import com.mialliance.mind.base.agent.MindAgent;
+import com.mialliance.Constants;
 import com.mialliance.mind.base.MindGoal;
 import com.mialliance.mind.base.MindSensor;
+import com.mialliance.mind.base.agent.MindAgent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -27,13 +28,13 @@ import java.util.function.Supplier;
  * </p>
  * <p>
  *     Beliefs can also, optionally, supply an {@link Vec3} as a {@code Location} to be used by actions. By default,
- *     the Belief will supply a location of {@link MiAllianceConstants#NULL_LOCATION}, which indicates a location
+ *     the Belief will supply a location of {@link Constants#NULL_LOCATION}, which indicates a location
  *     that is not set. This is different from a position of {@code (0,0,0)}, as to avoid collisions with (0,0,0) in the
  *     actual world.
  * </p>
  * <p>
  *     By default, Beliefs will return a conditional of {@code true} (always satisfied), and
- *     a location of {@link MiAllianceConstants#NULL_LOCATION} (no or invalid location) unless otherwise set.
+ *     a location of {@link Constants#NULL_LOCATION} (no or invalid location) unless otherwise set.
  * </p>
  * @see MindAgent
  * @see MindGoal
@@ -43,10 +44,12 @@ import java.util.function.Supplier;
  */
 public class MindBelief {
 
+    public static final Function<String, MindBelief> ALWAYS_FALSE = (name) -> new MindBelief.Builder(name).withCondition(() -> false).build();
+
     private final String name;
 
     private Supplier<Boolean> condition = () -> true;
-    private Supplier<Vec3> location = () -> MiAllianceConstants.NULL_LOCATION;
+    private Supplier<Vec3> location = () -> Constants.NULL_LOCATION;
 
     MindBelief(String name) {
         this.name = name;
@@ -89,7 +92,7 @@ public class MindBelief {
          *     {@code false}.
          * </p>
          * <p>
-         *     Any location suppliers should, by default, return {@link MiAllianceConstants#NULL_LOCATION}
+         *     Any location suppliers should, by default, return {@link Constants#NULL_LOCATION}
          *     to indicate an invalid or empty location, and should <u>never</u> return {@code null}.
          * </p>
          * @param location The location supplier which returns a {@link Vec3} location.

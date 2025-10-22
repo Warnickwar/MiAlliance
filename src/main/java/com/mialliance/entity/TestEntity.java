@@ -1,5 +1,6 @@
 package com.mialliance.entity;
 
+import com.mialliance.Constants;
 import com.mialliance.mind.base.MindGoal;
 import com.mialliance.mind.base.MindSensor;
 import com.mialliance.mind.base.action.IContextProvider;
@@ -46,7 +47,7 @@ public class TestEntity extends TamableMindComponentEntity implements IContextPr
     @Override
     protected void setupSensors(HashMap<String, MindSensor> sensors) {
 
-        sensors.put("TargetSensor", new EntityLocationSensor(this, 15, (ent) -> {
+        sensors.put("TargetAggression", new EntityLocationSensor(this, 15, (ent) -> {
             return ent.getType() == EntityType.PIG && this.getSensing().hasLineOfSight(ent);
         })
             .onLocationChange((sens) -> {
@@ -58,10 +59,10 @@ public class TestEntity extends TamableMindComponentEntity implements IContextPr
             }
             }));
 
-        sensors.put("MeleeTargetSensor", new EntityLocationSensor(this, 5, (ent) -> ent.getType() == EntityType.PIG)
+        sensors.put("MeleeTargetAggression", new EntityLocationSensor(this, 5, (ent) -> ent.getType() == EntityType.PIG)
             .onLocationChange((sens) -> {
                 // Update only when Target is in range, as to properly
-                //  have the Agent reevaluate the melee range
+                //  have the Agent reevaluate the plan and swap to Melee
                 if (sens.getTarget() == this.getTarget()) {
                     this.getAgent().finishPlan();
                 }
@@ -76,8 +77,9 @@ public class TestEntity extends TamableMindComponentEntity implements IContextPr
         factory.addBelief("Moving", () -> !this.navigation.isDone());
         factory.addBelief("Attacking", () -> false);
         factory.addBelief("HasTarget", () -> this.getTarget() != null);
-        factory.addBelief("TargetNearby", () -> ((EntityLocationSensor) sensors.get("TargetSensor")).isTargetInRange());
-        factory.addBelief("TargetInMeleeRange", () -> this.getTarget() != null && this.getTarget().position().distanceToSqr(this.position()) < getAttackReachSqr(this, this.getTarget()));
+        factory.addBelief("TargetNearby", () -> ((EntityLocationSensor) sensors.get("TargetAggression")).isTargetInRange());
+        factory.addBelief("TargetAggroMelee", () -> ((EntityLocationSensor) sensors.get("MeleeTargetAggression")).isTargetInRange());
+        factory.addBelief("TargetInMeleeRange", () -> this.getTarget() != null && Constants.withinMeleeRange(this, this.getTarget()));
 
     }
 
@@ -96,13 +98,13 @@ public class TestEntity extends TamableMindComponentEntity implements IContextPr
 
         //noinspection DataFlowIssue
         mindActions.add(new MindAction.Builder("Chase_Target")
-            .withStrategy(new ChaseStrategy(this, 0.7D, false, () -> getAttackReachSqr(this, this.getTarget())))
+            .withStrategy(new ChaseStrategy(this, 0.7D, false, () -> Math.max(Constants.getAttackReachSqrt(this, this.getTarget())-1.0D, 0.5D)))
             .addPrecondition(beliefs.get("HasTarget"))
             .addEffect(beliefs.get("TargetInMeleeRange"))
             .build());
 
         mindActions.add(new MindAction.Builder("Attack_Melee")
-            .withStrategy(new MeleeAttackEntityStrategy(this, 0.7D, false))
+            .withStrategy(new MeleeAttackEntityStrategy(this))
             .addPrecondition(beliefs.get("HasTarget"))
             .addPrecondition(beliefs.get("TargetInMeleeRange"))
             .addEffect(beliefs.get("Attacking"))
@@ -117,6 +119,7 @@ public class TestEntity extends TamableMindComponentEntity implements IContextPr
             .addDesire(beliefs.get("Nothing"))
             .build());
 
+        // Make the agent idle after wandering
         goals.add(new MindGoal.Builder("mialliance:wander_avoid_water")
             .withPriority(1F)
             .addDesire(beliefs.get("Moving"))
@@ -193,10 +196,6 @@ public class TestEntity extends TamableMindComponentEntity implements IContextPr
             manager.get().ifLeft(mem -> this.memories = mem);
         }
         super.load(tag);
-    }
-
-    protected static double getAttackReachSqr(LivingEntity origin, LivingEntity target) {
-        return (double)(origin.getBbWidth() * 2.0F * origin.getBbWidth() * 2.0F + target.getBbWidth());
     }
 
     public static AttributeSupplier createDefaultAttributes() {

@@ -1,6 +1,6 @@
 package com.mialliance.mind.base.kits;
 
-import com.mialliance.MiAllianceConstants;
+import com.mialliance.Constants;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.agent.MindAgentHolder;
@@ -29,7 +29,7 @@ public final class PlanContext<T extends MindAgent<?>> {
 
         @Override
         public Vec3 getLocation() {
-            return MiAllianceConstants.NULL_LOCATION;
+            return Constants.NULL_LOCATION;
         }
 
         // TODO: Create a placeholder Level

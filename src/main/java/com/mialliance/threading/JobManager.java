@@ -3,10 +3,7 @@ package com.mialliance.threading;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 public final class JobManager {
 
@@ -23,7 +20,11 @@ public final class JobManager {
      */
     public static void open() {
         if (threadPool == null) {
-            threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+            // Done instead of Executors.newCachedThreadPool() to always have 5 threads minimum
+            //  on the ready.
+            threadPool = new ThreadPoolExecutor(5, Integer.MAX_VALUE,
+                60L, TimeUnit.SECONDS,
+                new SynchronousQueue<>());;
         }
     }
 

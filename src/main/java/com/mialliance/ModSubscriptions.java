@@ -38,9 +38,9 @@ public class ModSubscriptions {
     public static void onClientTick(TickEvent.ClientTickEvent evt) {
         if (evt.phase == TickEvent.Phase.END) {
             while (KEYMAPPINGS.DEBUG_TOGGLE.consumeClick()) {
-                MiAllianceConstants.DEBUG = !MiAllianceConstants.DEBUG;
-                TextColor res = MiAllianceConstants.DEBUG ? TextColor.parseColor("#55FF55") : TextColor.parseColor("#FF5555");
-                Minecraft.getInstance().gui.getChat().addMessage(Component.empty().append("[Debug]: ").append(Component.translatable("debug.mialliance.debug_toggle", MiAllianceConstants.DEBUG ? "Enabled" : "Disabled").withStyle(org -> org.withBold(true).withColor(res))));
+                Constants.DEBUG = !Constants.DEBUG;
+                TextColor res = Constants.DEBUG ? TextColor.parseColor("#55FF55") : TextColor.parseColor("#FF5555");
+                Minecraft.getInstance().gui.getChat().addMessage(Component.empty().append("[Debug]: ").append(Component.translatable("debug.mialliance.debug_toggle", Constants.DEBUG ? "Enabled" : "Disabled").withStyle(org -> org.withBold(true).withColor(res))));
             }
         }
     }

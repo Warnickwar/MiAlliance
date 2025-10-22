@@ -36,7 +36,7 @@ public class BasicPlanner implements IPlanner {
         try {
             for (MindGoal goal : ordered) {
                 Node goalNode = new Node(null, null, goal.getEffects(), 0);
-                HashSet<MindAction> availableActions = agent.getActions();
+                HashSet<MindAction> availableActions = new HashSet<>(agent.getActions());
                 // Add all contextual actions that are available to the Agent.
                 availableActions.addAll(context.getActions());
                 if (findPath(goalNode, availableActions)) {
@@ -65,9 +65,7 @@ public class BasicPlanner implements IPlanner {
         sorted.addAll(actions);
         for (MindAction act : sorted) {
             HashSet<MindBelief> required = new HashSet<>(parent.requiredEffects);
-            required.forEach(belief -> {
-                if (belief.evaluate()) required.remove(belief);
-            });
+            required.removeIf(MindBelief::evaluate);
 
             if (required.isEmpty())  {
                 return true;
@@ -99,22 +97,23 @@ public class BasicPlanner implements IPlanner {
         float priority1 = one == recentGoal ? one.getPriority()-0.01F : one.getPriority();
         float priority2 = two == recentGoal ? two.getPriority()-0.01F : two.getPriority();
         // Move the goal down the line instead of removing at redundant points
-        return priority1 < priority2 ? 1 : -1;
+        return priority1 <= priority2 ? -1 : 1;
     }
 
     private static int compareCost(MindAction act1, MindAction act2) {
         float costOne = act1.getCost();
         float costTwo = act2.getCost();
-        return costOne < costTwo ? -1 : 1;
+        return costOne <= costTwo ? -1 : 1;
     }
 
     private static int compareCost(Node one, Node two) {
         float costOne = one.cost;
         float costTwo = two.cost;
-        return costOne < costTwo ? -1 : 1;
+        return costOne <= costTwo ? -1 : 1;
     }
 
     public static class Node {
+        // Useful for debugging
         @Nullable
         private final Node parent;
         @Nullable
@@ -132,30 +131,8 @@ public class BasicPlanner implements IPlanner {
             this.cost = cost;
         }
 
-        @Nullable
-        public Node getParent() {
-            return this.parent;
-        }
-
-        @Nullable
-        public MindAction getAction() {
-            return action;
-        }
-
-        public List<Node> getLeaves() {
-            return leaves;
-        }
-
         public boolean isLeafDead() {
             return leaves.isEmpty() && action == null;
-        }
-
-        public HashSet<MindBelief> getRequiredEffects() {
-            return requiredEffects;
-        }
-
-        public float getCost() {
-            return cost;
         }
 
     }

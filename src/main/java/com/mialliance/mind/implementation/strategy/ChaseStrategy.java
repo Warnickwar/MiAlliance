@@ -1,5 +1,6 @@
 package com.mialliance.mind.implementation.strategy;
 
+import com.mialliance.Constants;
 import com.mialliance.mind.base.IStrategy;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -19,7 +20,7 @@ public class ChaseStrategy implements IStrategy {
         this(host, speedMod, requiresLoS, () -> 2.0D);
     }
 
-    public ChaseStrategy(PathfinderMob host, double speedMod, boolean requiresLoS, Supplier<Double> distanceToEnd) {
+    public ChaseStrategy(PathfinderMob host,    double speedMod, boolean requiresLoS, Supplier<Double> distanceToEnd) {
         this.host = host;
         this.speedMod = speedMod;
         this.requiresLoS = requiresLoS;
@@ -51,25 +52,23 @@ public class ChaseStrategy implements IStrategy {
                     this.ticksUntilPathRecalculation += 15;
                 }
 
-                this.ticksUntilPathRecalculation = this.adjustedTickDelay(this.ticksUntilPathRecalculation);
+                this.ticksUntilPathRecalculation = Constants.adjustedTickDelay(this.ticksUntilPathRecalculation);
             }
         }
     }
 
     @Override
-    public void stop(boolean successful) {
-        this.host.getNavigation().stop();
-    }
+    public void stop(boolean successful) {}
 
     @Override
     public boolean canPerform() {
-        return this.host.getTarget() != null;
+        return this.host.getTarget() != null && !this.host.getNavigation().isStuck();
     }
 
     @Override
     public boolean isComplete() {
-        assert this.host.getTarget() != null;
-        return this.host.position().closerThan(this.host.getTarget().position(), distanceToEnd.get());
+        if (this.host.getTarget() == null) return true;
+        return this.host.distanceToSqr(this.host.getTarget()) < distanceToEnd.get();
     }
 
 }

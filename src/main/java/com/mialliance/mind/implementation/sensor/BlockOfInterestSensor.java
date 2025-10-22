@@ -1,6 +1,6 @@
 package com.mialliance.mind.implementation.sensor;
 
-import com.mialliance.MiAllianceConstants;
+import com.mialliance.Constants;
 import com.mialliance.mind.base.MindSensor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -34,7 +34,7 @@ public class BlockOfInterestSensor extends MindSensor {
         this.width = width;
         this.height = height;
         this.filter = filter;
-        this.positionOfInterest = MiAllianceConstants.NULL_BLOCKPOS.mutable();
+        this.positionOfInterest = Constants.NULL_BLOCKPOS.mutable();
         this.stateOfInterest = Blocks.AIR.defaultBlockState();
         this.listenersToChange = new ArrayList<>(5);
     }
@@ -44,7 +44,7 @@ public class BlockOfInterestSensor extends MindSensor {
         BlockPos currentEntityPos = source.getOnPos();
         AABB areaToCheck = new AABB(currentEntityPos.offset(-width, -height, -width), currentEntityPos.offset(width, height, width));
         Level entLevel = source.getLevel();
-        BlockPos.MutableBlockPos closestPos = MiAllianceConstants.NULL_BLOCKPOS.mutable();
+        BlockPos.MutableBlockPos closestPos = Constants.NULL_BLOCKPOS.mutable();
         BlockState currentDetectedState = Blocks.AIR.defaultBlockState();
         BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos((int) areaToCheck.minX, (int) areaToCheck.minY, (int) areaToCheck.minZ);
         double currentDistance = Double.MAX_VALUE;
@@ -97,9 +97,9 @@ public class BlockOfInterestSensor extends MindSensor {
     }
 
     public boolean hasInterest() {
-        return positionOfInterest.getX() != MiAllianceConstants.NULL_BLOCKPOS.getX() &&
-            positionOfInterest.getY() != MiAllianceConstants.NULL_BLOCKPOS.getY() &&
-            positionOfInterest.getZ() != MiAllianceConstants.NULL_BLOCKPOS.getZ();
+        return positionOfInterest.getX() != Constants.NULL_BLOCKPOS.getX() &&
+            positionOfInterest.getY() != Constants.NULL_BLOCKPOS.getY() &&
+            positionOfInterest.getZ() != Constants.NULL_BLOCKPOS.getZ();
     }
 
 }

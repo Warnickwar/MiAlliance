@@ -1,15 +1,10 @@
 package com.mialliance.mind.implementation.agent;
 
 import com.mialliance.mind.base.agent.MindAgent;
-import com.mialliance.mind.base.MindGoal;
-import com.mialliance.mind.base.plan.ActionPlan;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.HashSet;
 
 public abstract class EntityAgent<T extends PathfinderMob> extends MindAgent<T> {
 
@@ -32,11 +27,6 @@ public abstract class EntityAgent<T extends PathfinderMob> extends MindAgent<T> 
     @Override
     protected void onPlanFinish() {
         getOwner().getNavigation().stop();
-    }
-
-    @Override
-    protected ActionPlan planSupplier(MindAgent<T> agent, HashSet<MindGoal> goals, @Nullable MindGoal lastGoal) {
-        return this.planner.plan(agent, goals, lastGoal, this.getOwner().getLevel().getProfiler());
     }
 
 }

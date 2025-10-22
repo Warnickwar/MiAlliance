@@ -18,18 +18,20 @@ public class WanderStrategy implements IStrategy {
     // Use to simplify memory management instead of constantly re/making Vec3s
     protected final DesiredPos desiredPos;
 
-    protected boolean forceTrigger;
     protected boolean checkNoActionTime;
+    private boolean checkLocation;
 
     public WanderStrategy(PathfinderMob source, double speedModifier, boolean checkNoAction) {
         this.source = source;
         this.speedModifier = speedModifier;
         this.desiredPos = new DesiredPos(NONE.x, NONE.y, NONE.z);
         this.checkNoActionTime = checkNoAction;
+        this.checkLocation = true;
     }
 
     @Override
     public void start() {
+        this.checkLocation = false;
         this.source.getNavigation().moveTo(desiredPos.x, desiredPos.y, desiredPos.z, this.speedModifier);
     }
 
@@ -39,26 +41,29 @@ public class WanderStrategy implements IStrategy {
     }
 
     @Override
-    public void stop(boolean successful) {
-        this.source.getNavigation().stop();
+    public boolean canPerform() {
+        if (this.source.getNavigation().isStuck()) return false;
+        if (this.source.isVehicle()) return false;
+
+        if (this.checkNoActionTime && this.source.getNoActionTime() >= 100) return false;
+
+        // prevent unnecessary checks and generations
+        if (checkLocation) {
+            Vec3 pos = getPosition();
+
+            if (pos == null) return false;
+
+            desiredPos.x = pos.x;
+            desiredPos.y = pos.y;
+            desiredPos.z = pos.z;
+        }
+        return true;
     }
 
     @Override
-    public boolean canPerform() {
-        if (this.source.isVehicle()) return false;
-
-        if (!this.forceTrigger) {
-            if (this.checkNoActionTime && this.source.getNoActionTime() >= 100) return false;
-        }
-
-        Vec3 pos = getPosition();
-
-        if (pos == null) return false;
-
-        desiredPos.x = pos.x;
-        desiredPos.y = pos.y;
-        desiredPos.z = pos.z;
-        return true;
+    public void stop(boolean successful) {
+        this.checkLocation = true;
+        this.source.getNavigation().stop();
     }
 
     @Override

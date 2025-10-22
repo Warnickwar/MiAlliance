@@ -1,6 +1,6 @@
 package com.mialliance.mind.implementation.sensor;
 
-import com.mialliance.MiAllianceConstants;
+import com.mialliance.Constants;
 import com.mialliance.mind.base.MindSensor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class EntityLocationSensor extends MindSensor {
 
@@ -21,7 +22,7 @@ public class EntityLocationSensor extends MindSensor {
 
     private final Entity source;
 
-    private final float range;
+    private final Supplier<Float> range;
     private final List<Consumer<EntityLocationSensor>> listenersToChange;
 
     @Nullable
@@ -35,19 +36,23 @@ public class EntityLocationSensor extends MindSensor {
     }
 
     public EntityLocationSensor(Entity source, float range, @NotNull Predicate<Entity> filter) {
+        this(source, () -> range, filter);
+    }
+
+    public EntityLocationSensor(Entity source, @NotNull Supplier<Float> range, @NotNull Predicate<Entity> filter) {
         super(5);
         this.source = source;
         this.range = range;
         this.filter = filter;
-        this.lastKnownPosition = MiAllianceConstants.NULL_LOCATION;
+        this.lastKnownPosition = Constants.NULL_LOCATION;
         this.listenersToChange = new ArrayList<>(5);
     }
 
     @Override
     protected void onTick() {
         Vec3 agentLoc = source.position();
-        List<Entity> entities = source.getLevel().getEntities(null, new AABB(agentLoc, agentLoc).inflate(range));
-        Optional<Entity> ordered = entities.stream().filter(ent -> ent.position().closerThan(agentLoc, range))
+        List<Entity> entities = source.getLevel().getEntities(null, new AABB(agentLoc, agentLoc).inflate(range.get()));
+        Optional<Entity> ordered = entities.stream().filter(ent -> ent.position().closerThan(agentLoc, range.get()))
             .sorted((ent1, ent2) -> {
                 double ent1Dist = ent1.position().distanceTo(agentLoc);
                 double ent2Dist = ent2.position().distanceTo(agentLoc);
@@ -75,7 +80,7 @@ public class EntityLocationSensor extends MindSensor {
     }
 
     public Vec3 getTargetPosition() {
-        return this.target == null ? MiAllianceConstants.NULL_LOCATION : this.target.position();
+        return this.target == null ? Constants.NULL_LOCATION : this.target.position();
     }
 
     @Nullable
@@ -84,7 +89,7 @@ public class EntityLocationSensor extends MindSensor {
     }
 
     public boolean isTargetInRange() {
-        return getTargetPosition() != MiAllianceConstants.NULL_LOCATION;
+        return getTargetPosition() != Constants.NULL_LOCATION;
     }
 
     public boolean isTargetDifferent() { return this.target != this.lastTarget; }
@@ -93,7 +98,7 @@ public class EntityLocationSensor extends MindSensor {
         this.lastTarget = this.target;
         this.target = ent;
         Vec3 newPos = getTargetPosition();
-        if (isTargetInRange() && (lastKnownPosition != newPos || lastKnownPosition != MiAllianceConstants.NULL_LOCATION)) {
+        if (isTargetInRange() && (lastKnownPosition != newPos || lastKnownPosition != Constants.NULL_LOCATION)) {
             lastKnownPosition = newPos;
             listenersToChange.forEach(cons -> cons.accept(this));
         }

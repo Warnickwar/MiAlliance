@@ -36,8 +36,8 @@ public abstract class MindAgent<T> {
 
     protected final MemoryManager memories;
 
-    protected final HashMap<String, MindBelief> beliefs;
     protected final HashMap<String, MindSensor> sensors;
+    protected final HashMap<String, MindBelief> beliefs;
     protected final HashMap<String, MindAction> actions;
     protected final HashMap<String, MindGoal> goals;
 
@@ -48,12 +48,13 @@ public abstract class MindAgent<T> {
 
     @Nullable
     private Future<ActionPlan> planFuture;
+    private boolean isPlanning;
 
     public MindAgent() {
-        this.beliefs = new HashMap<>();
-        this.cachedBeliefView = new BeliefView(this.beliefs);
         this.sensors = new HashMap<>();
         this.cachedSensorView = new SensorView(this.sensors);
+        this.beliefs = new HashMap<>();
+        this.cachedBeliefView = new BeliefView(this.beliefs);
         this.actions = new HashMap<>();
         HashSet<MindAction> tempActions = new HashSet<>();
         this.goals = new HashMap<>();
@@ -66,6 +67,7 @@ public abstract class MindAgent<T> {
         setupGoals(tempGoals);
         tempGoals.forEach(goal -> this.goals.put(goal.getName(), goal));
         this.planner = createPlanner();
+        this.isPlanning = false;
     }
 
     public abstract T getOwner();
@@ -127,7 +129,7 @@ public abstract class MindAgent<T> {
     protected void onPostTick() {}
 
     final void calculatePlan() {
-        if (isPlanning()) {
+        if (isPlanning) {
             assert planFuture != null;
             if (planFuture.isDone()) {
                 try {
@@ -136,6 +138,7 @@ public abstract class MindAgent<T> {
                     // Failed Plan, ignore and continue. Remove PlanFuture when done
                     //  to try and re-request a new plan.
                 }
+                this.isPlanning = false;
                 planFuture = null;
             }
         } else {
@@ -151,6 +154,7 @@ public abstract class MindAgent<T> {
             }
 
             planFuture = JobManager.submitJob(() -> this.planSupplier(this, goalsToEvaluate, lastGoal));
+            this.isPlanning = true;
         }
     }
 
@@ -258,10 +262,6 @@ public abstract class MindAgent<T> {
     @Nullable
     public ActionPlan getCurrentPlan() {
         return this.plan;
-    }
-
-    public boolean isPlanning() {
-        return this.planFuture != null;
     }
 
     @NotNull

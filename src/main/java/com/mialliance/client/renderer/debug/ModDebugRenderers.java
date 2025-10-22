@@ -1,6 +1,6 @@
 package com.mialliance.client.renderer.debug;
 
-import com.mialliance.MiAllianceConstants;
+import com.mialliance.Constants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,7 +17,7 @@ public class ModDebugRenderers {
     }
 
     public void render(PoseStack poseStack, MultiBufferSource.BufferSource buffer, double camX, double camY, double camZ) {
-        if (!MiAllianceConstants.DEBUG) return;
+        if (!Constants.DEBUG) return;
         MIND_DEBUG.render(poseStack, buffer, camX, camY, camZ);
     }
 

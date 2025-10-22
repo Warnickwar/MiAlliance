@@ -3,11 +3,13 @@ package com.mialliance;
 import com.mialliance.client.renderer.debug.ModDebugRenderers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Nullable;
 
-public class MiAllianceConstants {
+public class Constants {
 
     public static boolean DEBUG = !FMLLoader.isProduction();
 
@@ -16,6 +18,18 @@ public class MiAllianceConstants {
     public static final BlockPos NULL_BLOCKPOS = new BlockPos(0, -256, 0);
 
     public static int FRIENDLY_OFFICER_PARTY_MAXIMUM = 8;
+
+    public static double getAttackReachSqrt(LivingEntity source, LivingEntity target) {
+        return (source.getBbWidth() * 2.0F * source.getBbWidth() * 2.0F) + target.getBbWidth();
+    }
+
+    public static boolean withinMeleeRange(LivingEntity source, LivingEntity target) {
+        return source.distanceToSqr(target) <= Constants.getAttackReachSqrt(source, target);
+    }
+
+    public static int adjustedTickDelay(int currentTickDelay) {
+        return Mth.positiveCeilDiv(currentTickDelay, 2);
+    }
 
     public static class CLIENT {
 

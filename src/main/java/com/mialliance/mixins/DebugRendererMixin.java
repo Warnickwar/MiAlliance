@@ -1,6 +1,6 @@
 package com.mialliance.mixins;
 
-import com.mialliance.MiAllianceConstants;
+import com.mialliance.Constants;
 import com.mialliance.client.renderer.debug.ModDebugRenderers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.debug.DebugRenderer;
@@ -16,12 +16,12 @@ public abstract class DebugRendererMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     public void mialliance$init(Minecraft mc, CallbackInfo ci) {
-        MiAllianceConstants.CLIENT.DEBUG_RENDERERS = new ModDebugRenderers(mc);
+        Constants.CLIENT.DEBUG_RENDERERS = new ModDebugRenderers(mc);
     }
 
     @Inject(method = "clear", at = @At("TAIL"))
     public void mialliance$clear(CallbackInfo ci) {
-        assert MiAllianceConstants.CLIENT.DEBUG_RENDERERS != null;
-        MiAllianceConstants.CLIENT.DEBUG_RENDERERS.clear();
+        assert Constants.CLIENT.DEBUG_RENDERERS != null;
+        Constants.CLIENT.DEBUG_RENDERERS.clear();
     }
 }

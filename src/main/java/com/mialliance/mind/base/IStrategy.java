@@ -63,7 +63,5 @@ public interface IStrategy {
      */
     boolean isComplete();
 
-    default int adjustedTickDelay(int currentTickDelay) {
-        return Mth.positiveCeilDiv(currentTickDelay, 2);
-    }
+
 }
