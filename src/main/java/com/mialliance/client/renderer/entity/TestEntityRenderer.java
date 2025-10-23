@@ -1,7 +1,7 @@
 package com.mialliance.client.renderer.entity;
 
 import com.mialliance.MiAlliance;
-import com.mialliance.entity.TestEntity;
+import com.mialliance.entity.debug.TestEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;

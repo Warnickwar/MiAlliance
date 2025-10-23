@@ -1,31 +1,45 @@
-package com.mialliance.entity;
+package com.mialliance.entity.base;
 
+import com.mialliance.communication.CommListener;
+import com.mialliance.components.ComponentManager;
+import com.mialliance.components.EntityComponentObject;
+import com.mialliance.mind.base.MindGoal;
+import com.mialliance.mind.base.MindSensor;
+import com.mialliance.mind.base.action.IContextProvider;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.EntityMindAgentHolder;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.BeliefFactory;
 import com.mialliance.mind.base.belief.MindBelief;
-import com.mialliance.mind.base.MindGoal;
 import com.mialliance.mind.base.kits.PlanContext;
-import com.mialliance.mind.base.MindSensor;
+import com.mialliance.mind.base.memory.MemoryManager;
 import com.mialliance.mind.implementation.agent.EntityAgent;
-import com.mialliance.network.packets.MindEntityS2CPacket;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.HashSet;
 
-public abstract class TamableMindComponentEntity extends TamableComponentEntity implements EntityMindAgentHolder {
+// TODO: Implement
+//  use GenericMi for the Ownable
+public abstract class AbstractMi extends PathfinderMob implements EntityMindAgentHolder, EntityComponentObject<AbstractMi>, Enemy, IContextProvider, CommListener {
 
-    private final EntityAgent<TamableMindComponentEntity> agent;
+    protected final EntityAgent<AbstractMi> agent;
+    protected final ComponentManager components;
+    protected final MemoryManager memories;
 
-    protected TamableMindComponentEntity(EntityType<? extends PathfinderMob> p_21683_, Level p_21684_) {
+    protected AbstractMi(EntityType<? extends PathfinderMob> p_21683_, Level p_21684_) {
         super(p_21683_, p_21684_);
-        // Obtain a reference to the entity object to expose it to the Agent
-        TamableMindComponentEntity temp = this;
+        AbstractMi temp = this;
+        this.memories = new MemoryManager();
+        this.components = new ComponentManager(this, true);
         this.agent = new EntityAgent<>() {
+            @Override
+            public AbstractMi getOwner() {
+                return temp;
+            }
 
             @Override
             protected void setupSensors(HashMap<String, MindSensor> sensors) {
@@ -38,8 +52,8 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
             }
 
             @Override
-            protected void setupActions(HashSet<MindAction> mindActions) {
-                temp.setupActions(mindActions, this.getBeliefView());
+            protected void setupActions(HashSet<MindAction> actions) {
+                temp.setupActions(actions, this.getBeliefView());
             }
 
             @Override
@@ -47,11 +61,9 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
                 temp.setupGoals(goals, this.getBeliefView());
             }
 
-            // Weird Hack, but okay.
-            //  Still accomplishes the same goal.
             @Override
-            public TamableMindComponentEntity getOwner() {
-                return temp;
+            public PlanContext<MindAgent<AbstractMi>> collectContext() {
+                return temp.collectContext();
             }
 
             @Override
@@ -88,11 +100,6 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
             protected void onPlanFinish() {
                 temp.onPlanFinish();
             }
-
-            @Override
-            public PlanContext<MindAgent<TamableMindComponentEntity>> collectContext() {
-                return temp.collectContext();
-            }
         };
     }
 
@@ -104,40 +111,24 @@ public abstract class TamableMindComponentEntity extends TamableComponentEntity 
 
     protected abstract void setupGoals(HashSet<MindGoal> goals, MindAgent.BeliefView beliefs);
 
-    protected void agentPreTick() {}
+    protected void agentPreTick() { this.getLevel().getProfiler().push("mialliance:calculatingAgentTick"); }
 
-    protected void agentPlanningTick() {}
+    protected void agentPlanningTick() { this.getLevel().getProfiler().push("mialliance:creatingAgentPlan"); }
 
-    protected void agentPlanRunTick() {}
+    protected void agentPlanRunTick() { this.getLevel().getProfiler().push("mialliance:executingAgentPlan"); }
 
-    protected void agentPlanningEndTick() {}
+    protected void agentPlanningEndTick() { this.getLevel().getProfiler().pop(); }
 
-    protected void agentPlanRunEndTick() {}
+    protected void agentPlanRunEndTick() { this.getLevel().getProfiler().pop(); }
 
-    protected void agentPostTick() {}
+    protected void agentPostTick() { this.getLevel().getProfiler().pop(); }
 
-    protected void onPlanFinish() {
-        this.navigation.stop();
-    }
+    protected void onPlanFinish() {}
+
+    @Override
+    public <T> void injectContext(PlanContext<MindAgent<T>> context) {}
 
     @SuppressWarnings("unchecked")
-    protected PlanContext<MindAgent<TamableMindComponentEntity>> collectContext() { return (PlanContext<MindAgent<TamableMindComponentEntity>>) PlanContext.NONE; }
-
-    public EntityAgent<TamableMindComponentEntity> getAgent() {
-        return this.agent;
-    }
-
-    @Override
-    public void tick() {
-        if (!this.level.isClientSide && !this.isNoAi()) {
-            this.agent.tick();
-        }
-        super.tick();
-    }
-
-    @Override
-    protected void sendDebugPackets() {
-        MindEntityS2CPacket.sendMindInfo(this);
-    }
+    protected PlanContext<MindAgent<AbstractMi>> collectContext() { return (PlanContext<MindAgent<AbstractMi>>) PlanContext.NONE; }
 
 }

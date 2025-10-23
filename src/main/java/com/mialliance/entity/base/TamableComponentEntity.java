@@ -1,4 +1,4 @@
-package com.mialliance.entity;
+package com.mialliance.entity.base;
 
 import com.mialliance.components.ComponentManager;
 import com.mialliance.components.EntityComponentObject;

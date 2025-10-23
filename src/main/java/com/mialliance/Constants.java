@@ -1,10 +1,14 @@
 package com.mialliance;
 
 import com.mialliance.client.renderer.debug.ModDebugRenderers;
+import com.mialliance.entity.base.AbstractMi;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +35,25 @@ public class Constants {
         return Mth.positiveCeilDiv(currentTickDelay, 2);
     }
 
+    public static ResourceLocation makeLocation(String name) {
+        return ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, name);
+    }
+
+    public static String makeLocationCaptial(String name) {
+        return MiAlliance.MODID + ':' +name;
+    }
+
+    public static AbstractMi getMi(int entityID, Level level) {
+        Entity foundEnt = level.getEntity(entityID);
+        if (foundEnt == null) return null;
+        return foundEnt instanceof AbstractMi mi ? mi : null;
+    }
+
+    public static class LOCATIONS {
+
+        public static final ResourceLocation NOTHING_GOAL = makeLocation("idle");
+        public static final String FOLLOW_OFFICER = makeLocationCaptial("followOfficer");
+    }
     public static class CLIENT {
 
         @Nullable

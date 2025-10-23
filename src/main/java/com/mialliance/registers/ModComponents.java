@@ -6,7 +6,6 @@ import com.mialliance.components.Component;
 import com.mialliance.components.ComponentObject;
 import com.mialliance.components.ComponentType;
 import com.mialliance.components.implementations.CooldownComponent;
-import com.mialliance.components.implementations.MemoryComponent;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 
@@ -23,8 +22,6 @@ public class ModComponents {
     public static class GENERIC {
 
         public static final ComponentType<Component<ComponentObject>, ComponentObject> DUMMY = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "dummy"), ComponentObject.class, () -> new Component<>(){});
-
-        public static final ComponentType<MemoryComponent, ComponentObject> MEMORY_COMPONENT = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "memories"), ComponentObject.class, MemoryComponent::new);
 
         public static final ComponentType<CooldownComponent, ComponentObject> COOLDOWN_COMPONENT = register(ResourceLocation.fromNamespaceAndPath(MiAlliance.MODID, "cooldown"), ComponentObject.class, CooldownComponent::new);
 

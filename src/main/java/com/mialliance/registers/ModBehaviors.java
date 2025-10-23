@@ -2,7 +2,7 @@ package com.mialliance.registers;
 
 import com.mialliance.MiAlliance;
 import com.mialliance.ModRegistries;
-import com.mialliance.entity.TamableMindComponentEntity;
+import com.mialliance.entity.base.TamableMindComponentEntity;
 import com.mialliance.mind.base.action.MindAction;
 import com.mialliance.mind.base.agent.MindAgent;
 import com.mialliance.mind.base.belief.MindBelief;

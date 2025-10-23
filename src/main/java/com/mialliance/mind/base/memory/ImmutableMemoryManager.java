@@ -38,7 +38,11 @@ public class ImmutableMemoryManager {
     @SuppressWarnings("unchecked")
     @Nullable
     public <V> V getMemory(MemoryModuleType<V> type) {
-        return (V) memories.get(type);
+        try {
+            return (V) memories.get(type);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean hasMemory(@NotNull MemoryModuleType<?> type) {

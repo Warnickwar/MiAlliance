@@ -1,6 +1,7 @@
-package com.mialliance.entity;
+package com.mialliance.entity.debug;
 
 import com.mialliance.Constants;
+import com.mialliance.entity.base.TamableMindComponentEntity;
 import com.mialliance.mind.base.MindGoal;
 import com.mialliance.mind.base.MindSensor;
 import com.mialliance.mind.base.action.IContextProvider;

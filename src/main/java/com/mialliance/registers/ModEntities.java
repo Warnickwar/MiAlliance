@@ -2,7 +2,7 @@ package com.mialliance.registers;
 
 import com.mialliance.MiAlliance;
 import com.mialliance.client.renderer.entity.TestEntityRenderer;
-import com.mialliance.entity.TestEntity;
+import com.mialliance.entity.debug.TestEntity;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.core.Registry;
 import net.minecraft.world.entity.EntityType;
